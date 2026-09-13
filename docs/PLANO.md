@@ -158,7 +158,7 @@ Implementado em `src/app/api/orders/route.ts` (Zod estrito, `quantity` 1-50, rat
 - [x] Testar com throttle de rede em 3G lento
 - [x] Testar em tela de 360px
 - [x] Foco de teclado visível
-- [ ] Revisar as env vars na Vercel (produção **e** preview) — depende de você conferir no dashboard
+- [x] Revisar as env vars na Vercel (produção **e** preview) — `ADMIN_PASSWORD_HASH_BASE64` (renomeada na Fase 2 por causa do bug de expansão de `$`), `DATABASE_URL`, `JWT_SECRET`. Confirmado pelo Cleberton.
 
 Implementado: `opengraph-image.tsx`, `icon.tsx` e `apple-icon.tsx` (gerados via `next/og` `ImageResponse`, sem imagem real — cruz dourada sobre azul-manto, na paleta do projeto). `metadataBase` resolvido via `VERCEL_PROJECT_PRODUCTION_URL` (env var que a própria Vercel injeta), então funciona certo em produção sem precisar fixar domínio — e continua certo se um domínio próprio for adicionado depois. `not-found.tsx` customizado. Foco de teclado: `:focus-visible` global em `globals.css` com contorno dourado de 3px (testado via Playwright — `outline: 3px solid rgb(212, 165, 55)` no elemento focado). Testado em 360px (sem scroll horizontal) e com throttle simulando 3G lento (400kbps, latência 400ms via CDP) — home carregou em ~2s.
 

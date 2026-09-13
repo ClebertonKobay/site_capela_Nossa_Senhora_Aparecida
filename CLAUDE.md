@@ -60,9 +60,28 @@ O link de compra é `https://wa.me/<telefone>?text=<encodeURIComponent(mensagem)
 
 Mobile é o caso principal: as pessoas vão abrir isso no celular, no pátio da igreja, com sinal ruim. Mobile-first de verdade, sem imagem pesada.
 
-Evite a estética genérica de landing page de SaaS — cards todos iguais com sombra cinza e gradiente de enfeite. A referência visual é o mural de avisos da igreja: hierarquia clara, tipografia grande e legível para quem tem 70 anos, contraste alto. Uma família tipográfica, no máximo duas. O horário da próxima missa é a informação mais importante da home.
+Evite a estética genérica de landing page de SaaS — cards todos iguais com sombra cinza e gradiente de enfeite. A referência visual é o mural de avisos da igreja: hierarquia clara, tipografia grande e legível para quem tem 70 anos, contraste alto. Uma família tipográfica (Geist). O horário da próxima missa é a informação mais importante da home.
 
 Tamanho mínimo de fonte no corpo: 16px. Alvo de toque mínimo: 44px.
+
+### Paleta
+
+Baseada no manto de Nossa Senhora Aparecida. Definida como tokens CSS em `src/app/globals.css` (Tailwind v4, `@theme`) — usar as classes `bg-primary`, `text-primary`, `bg-primary-light`, `bg-accent` etc., nunca cor solta no meio do JSX. Visual fixo, sem variação por tema do sistema (não é um app com dark mode — é o mural de avisos da paróquia).
+
+| Token | Hex | Uso |
+|---|---|---|
+| `primary` | `#1B3A6B` | Azul-manto escuro — header, footer, texto de destaque |
+| `primary-light` | `#3D6FA8` | Azul-manto claro — links, ícones, apoio |
+| `accent` | `#D4A537` | Dourado — botão do WhatsApp, CTAs, badges de destaque |
+| `background` | `#F7F4EC` | Branco-céu — fundo geral |
+| `foreground` | `#1F2937` | Texto de corpo |
+
+### Localização
+
+A capela fica em R. Pedro Lessinski, S/N - Boa Vista, Ponta Grossa - PR, 84073-179 (coordenadas: -25.0582828, -50.1536695). Usar no mapa embutido da home (Fase 3):
+
+- Embed sem API key: `https://www.google.com/maps?q=-25.0582828,-50.1536695&z=17&output=embed`
+- Link "abrir no Google Maps": `https://www.google.com/maps/place/Capela+Nossa+Senhora+Aparecida/@-25.0579981,-50.1537934,19.83z/data=!4m6!3m5!1s0x94e81920eea21979:0xf7d21fcd3578d31!8m2!3d-25.0582828!4d-50.1536695!16s%2Fg%2F11f5mb4rj9`
 
 ## Comandos
 

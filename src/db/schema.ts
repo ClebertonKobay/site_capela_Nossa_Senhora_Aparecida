@@ -10,10 +10,14 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
-export const celebrationType = pgEnum("celebration_type", [
+// Compartilhado entre fixed_schedules e celebrations. celebrations, na
+// prática, só usa mass/rosary/novena (as que têm celebrante definido).
+export const activityType = pgEnum("celebration_type", [
   "mass",
   "rosary",
   "novena",
+  "prayer_group",
+  "catechism",
 ]);
 
 // A grade semanal fixa, que quase nunca muda.
@@ -22,6 +26,7 @@ export const fixedSchedules = pgTable("fixed_schedules", {
   weekday: integer("weekday").notNull(), // 0 = domingo ... 6 = sábado
   time: time("time").notNull(),
   description: text("description").notNull(),
+  type: activityType("type").notNull(),
   active: boolean("active").notNull().default(true),
 });
 
@@ -31,7 +36,7 @@ export const celebrations = pgTable("celebrations", {
   date: date("date").notNull(),
   time: time("time").notNull(),
   celebrant: text("celebrant").notNull(),
-  type: celebrationType("type").notNull(),
+  type: activityType("type").notNull(),
   note: text("note"),
   canceled: boolean("canceled").notNull().default(false),
 });

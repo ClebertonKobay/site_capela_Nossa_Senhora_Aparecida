@@ -1,0 +1,1 @@
+ALTER TABLE "fixed_schedules" ADD COLUMN "type" "celebration_type";

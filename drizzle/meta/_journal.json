@@ -8,6 +8,27 @@
       "when": 1789315982228,
       "tag": "0000_smooth_scream",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789328782115,
+      "tag": "0001_wonderful_major_mapleleaf",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789328806925,
+      "tag": "0002_strong_forge",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789328835327,
+      "tag": "0003_massive_anthem",
+      "breakpoints": true
     }
   ]
 }

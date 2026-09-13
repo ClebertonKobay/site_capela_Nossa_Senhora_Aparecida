@@ -86,6 +86,7 @@ Chamar na primeira linha de **toda** rota administrativa.
 - [ ] `/` — próxima missa em destaque, grade da semana, eventos futuros
 - [ ] Componente de grade de horários, combinando `fixed_schedules` com as exceções de `celebrations`
 - [ ] `/events/[id]` — detalhe do evento com o bloco de compra
+- [ ] Seção "Como chegar" na home: endereço + mapa embutido (ver coordenadas e URLs em `CLAUDE.md` > Localização)
 - [ ] `revalidate: 300`
 
 A regra de mesclagem é a parte com mais chance de dar errado: para cada dia, começar da grade fixa, aplicar as exceções da tabela `celebrations` e esconder as canceladas. Vale escrever essa função isolada em `src/lib/schedules.ts` e testar à mão com um domingo de festa.

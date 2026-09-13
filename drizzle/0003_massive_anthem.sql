@@ -1,0 +1,1 @@
+ALTER TABLE "fixed_schedules" ALTER COLUMN "type" SET NOT NULL;

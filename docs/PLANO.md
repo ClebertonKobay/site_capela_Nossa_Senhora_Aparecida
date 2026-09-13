@@ -83,13 +83,13 @@ Chamar na primeira linha de **toda** rota administrativa.
 
 ## Fase 3 — Site público
 
-- [ ] `/` — próxima missa em destaque, grade da semana, eventos futuros
-- [ ] Componente de grade de horários, combinando `fixed_schedules` com as exceções de `celebrations`
-- [ ] `/events/[id]` — detalhe do evento com o bloco de compra
-- [ ] Seção "Como chegar" na home: endereço + mapa embutido (ver coordenadas e URLs em `CLAUDE.md` > Localização)
-- [ ] `revalidate: 300`
+- [x] `/` — próxima missa em destaque, grade da semana, eventos futuros
+- [x] Componente de grade de horários, combinando `fixed_schedules` com as exceções de `celebrations`
+- [x] `/events/[id]` — detalhe do evento com bloco de compra **básico** (link direto pro WhatsApp). O formulário completo (nome/telefone/quantidade + grava pedido antes de redirecionar) é da Fase 6 — este aqui só cobre "tem interesse, manda mensagem".
+- [x] Seção "Como chegar" na home: endereço + mapa embutido (ver coordenadas e URLs em `CLAUDE.md` > Localização)
+- [x] `revalidate: 300`
 
-A regra de mesclagem é a parte com mais chance de dar errado: para cada dia, começar da grade fixa, aplicar as exceções da tabela `celebrations` e esconder as canceladas. Vale escrever essa função isolada em `src/lib/schedules.ts` e testar à mão com um domingo de festa.
+A regra de mesclagem foi implementada em `src/lib/schedules.ts` (`getWeekSchedule`, `getNextMass`). Testado manualmente: build, dev server com Playwright headless (screenshot em mobile 390px), e um evento fictício inserido/removido direto no banco para validar a listagem e a página de detalhe. Confirmado visualmente: próxima missa calculada corretamente considerando o horário atual de São Paulo (não UTC do servidor), grade da semana com os 7 itens certos, dia sem atividade mostrando estado vazio, mapa apontando pro endereço certo.
 
 ---
 

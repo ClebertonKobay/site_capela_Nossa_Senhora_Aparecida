@@ -1,69 +1,130 @@
-import Image from "next/image";
+import { and, asc, gte, isNotNull, or } from "drizzle-orm";
+import Link from "next/link";
 
-export default function Home() {
+import { db } from "@/db";
+import { events } from "@/db/schema";
+import { formatCurrency, formatEventDateTime, formatShortDate, formatTime } from "@/lib/format";
+import {
+  ACTIVITY_TYPE_LABELS,
+  WEEKDAY_LABELS,
+  getNextMass,
+  getWeekSchedule,
+} from "@/lib/schedules";
+
+export const revalidate = 300;
+
+const MAPS_EMBED_SRC = "https://www.google.com/maps?q=-25.0582828,-50.1536695&z=17&output=embed";
+const MAPS_LINK =
+  "https://www.google.com/maps/place/Capela+Nossa+Senhora+Aparecida/@-25.0579981,-50.1537934,19.83z/data=!4m6!3m5!1s0x94e81920eea21979:0xf7d21fcd3578d31!8m2!3d-25.0582828!4d-50.1536695!16s%2Fg%2F11f5mb4rj9";
+
+async function getUpcomingEvents() {
+  const now = new Date();
+  return db
+    .select()
+    .from(events)
+    .where(or(gte(events.startAt, now), and(isNotNull(events.endAt), gte(events.endAt, now))))
+    .orderBy(asc(events.startAt))
+    .limit(5);
+}
+
+export default async function HomePage() {
+  const [nextMass, week, upcomingEvents] = await Promise.all([
+    getNextMass(),
+    getWeekSchedule(),
+    getUpcomingEvents(),
+  ]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="flex-1">
+      <header className="bg-primary px-4 py-6 text-white">
+        <h1 className="text-2xl font-bold">Capela Nossa Senhora Aparecida</h1>
+        <p className="mt-1 text-base text-white/80">Boa Vista, Ponta Grossa - PR</p>
+      </header>
+
+      {nextMass && (
+        <section className="bg-accent px-4 py-6 text-primary">
+          <p className="text-sm font-semibold uppercase tracking-wide">Próxima Missa</p>
+          <p className="mt-1 text-3xl font-bold">
+            {WEEKDAY_LABELS[nextMass.weekday]}, {formatShortDate(nextMass.date)} às {formatTime(nextMass.time)}
           </p>
+          {nextMass.celebrant && <p className="mt-1 text-lg">Celebrante: {nextMass.celebrant}</p>}
+          {nextMass.note && <p className="mt-1 text-base">{nextMass.note}</p>}
+        </section>
+      )}
+
+      <section className="px-4 py-6">
+        <h2 className="text-xl font-bold text-primary">Horários da semana</h2>
+        <div className="mt-4 flex flex-col gap-3">
+          {week.map((day) => (
+            <div key={day.date} className="border-l-4 border-primary-light pl-3">
+              <p className="font-semibold text-primary">
+                {WEEKDAY_LABELS[day.weekday]} · {formatShortDate(day.date)}
+              </p>
+              {day.items.length === 0 ? (
+                <p className="text-base text-foreground/60">Sem atividades programadas.</p>
+              ) : (
+                <ul className="mt-1 flex flex-col gap-1">
+                  {day.items.map((item) => (
+                    <li key={`${item.time}-${item.description}`} className="text-base">
+                      <span className="font-semibold">{formatTime(item.time)}</span> — {item.description}
+                      {item.celebrant && ` (${item.celebrant})`}
+                      {item.note && <span className="block text-sm text-foreground/70">{item.note}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="bg-primary/5 px-4 py-6">
+        <h2 className="text-xl font-bold text-primary">Próximos eventos</h2>
+        {upcomingEvents.length === 0 ? (
+          <p className="mt-2 text-base text-foreground/60">Nenhum evento programado no momento.</p>
+        ) : (
+          <ul className="mt-4 flex flex-col gap-3">
+            {upcomingEvents.map((event) => (
+              <li key={event.id}>
+                <Link
+                  href={`/events/${event.id}`}
+                  className="block border-2 border-primary-light bg-background px-4 py-3"
+                >
+                  <p className="font-semibold text-primary">
+                    {event.featured && <span className="mr-1 text-accent">★</span>}
+                    {event.name}
+                  </p>
+                  <p className="text-base">{formatEventDateTime(event.startAt)}</p>
+                  {event.sellsCards && event.cardPrice != null && (
+                    <p className="text-sm text-foreground/70">Cartela: {formatCurrency(event.cardPrice)}</p>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="px-4 py-6">
+        <h2 className="text-xl font-bold text-primary">Como chegar</h2>
+        <p className="mt-2 text-base">R. Pedro Lessinski, S/N - Boa Vista, Ponta Grossa - PR, 84073-179</p>
+        <a
+          href={MAPS_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 inline-block text-base font-semibold text-primary-light underline"
+        >
+          Abrir no Google Maps
+        </a>
+        <div className="mt-4 aspect-[4/3] w-full overflow-hidden border-2 border-primary-light">
+          <iframe
+            src={MAPS_EMBED_SRC}
+            title="Mapa com a localização da Capela Nossa Senhora Aparecida"
+            loading="lazy"
+            className="h-full w-full"
+          />
         </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }

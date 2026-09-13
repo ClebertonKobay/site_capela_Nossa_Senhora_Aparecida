@@ -6,13 +6,13 @@ Documento vivo. Marque as fases conforme terminar e edite o que mudar de ideia.
 
 ## Fase 0 — Fundação
 
-- [ ] `npx create-next-app@latest` com TypeScript, Tailwind, App Router, `src/`
-- [ ] Criar projeto no Neon, copiar a connection string
-- [ ] `.env.local` e `.env.example` com: `DATABASE_URL`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`
-- [ ] Confirmar que `.env*` está no `.gitignore` (o `.env.example` precisa ser a exceção)
-- [ ] Instalar: `drizzle-orm`, `@neondatabase/serverless`, `zod`, `jose`, `@node-rs/argon2`
-- [ ] Dev: `drizzle-kit`, `@types/node`
-- [ ] Primeiro deploy na Vercel, mesmo com a página em branco — descobrir problema de build no dia 1, não no dia 20
+- [x] `npx create-next-app@latest` com TypeScript, Tailwind, App Router, `src/`
+- [x] Criar projeto no Neon, copiar a connection string
+- [x] `.env.local` e `.env.example` com: `DATABASE_URL`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`
+- [x] Confirmar que `.env*` está no `.gitignore` (o `.env.example` precisa ser a exceção)
+- [x] Instalar: `drizzle-orm`, `@neondatabase/serverless`, `zod`, `jose`, `@node-rs/argon2`
+- [x] Dev: `drizzle-kit`, `@types/node`
+- [x] Primeiro deploy na Vercel, mesmo com a página em branco — descobrir problema de build no dia 1, não no dia 20
 
 **Gerar o hash da senha** (rodar uma vez, colar o resultado no `.env.local` e nas env vars da Vercel):
 

@@ -29,6 +29,13 @@
       "when": 1789328835327,
       "tag": "0003_massive_anthem",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789329516931,
+      "tag": "0004_minor_the_liberteens",
+      "breakpoints": true
     }
   ]
 }

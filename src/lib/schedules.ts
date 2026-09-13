@@ -35,7 +35,7 @@ export type ScheduleOccurrence = {
 
 // --- Utilidades de data, sempre ancoradas no calendário de São Paulo ---
 
-function todayInSaoPaulo(): { year: number; month: number; day: number } {
+export function todayInSaoPaulo(): { year: number; month: number; day: number } {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: TIME_ZONE,
     year: "numeric",
@@ -59,15 +59,15 @@ function nowInSaoPaulo(): { hour: number; minute: number } {
 
 // Data "sem hora", ancorada em UTC meia-noite — evita que o fuso do
 // servidor (Vercel roda em UTC) interfira na aritmética de dias.
-function dateOnlyUTC(year: number, month: number, day: number): Date {
+export function dateOnlyUTC(year: number, month: number, day: number): Date {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
-function addDays(date: Date, days: number): Date {
+export function addDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * 86_400_000);
 }
 
-function toISODate(date: Date): string {
+export function toISODate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 

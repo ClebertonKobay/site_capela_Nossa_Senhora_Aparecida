@@ -8,6 +8,7 @@ import {
   text,
   time,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // Compartilhado entre fixed_schedules e celebrations. celebrations, na
@@ -30,16 +31,22 @@ export const fixedSchedules = pgTable("fixed_schedules", {
   active: boolean("active").notNull().default(true),
 });
 
-// Exceções e escala de celebrante por data específica.
-export const celebrations = pgTable("celebrations", {
-  id: serial("id").primaryKey(),
-  date: date("date").notNull(),
-  time: time("time").notNull(),
-  celebrant: text("celebrant").notNull(),
-  type: activityType("type").notNull(),
-  note: text("note"),
-  canceled: boolean("canceled").notNull().default(false),
-});
+// Exceções e escala de celebrante por data específica. Uma linha por
+// data+horário+tipo — permite upsert (ex: marcar "cancelada" sem
+// ainda ter definido o celebrante).
+export const celebrations = pgTable(
+  "celebrations",
+  {
+    id: serial("id").primaryKey(),
+    date: date("date").notNull(),
+    time: time("time").notNull(),
+    celebrant: text("celebrant"),
+    type: activityType("type").notNull(),
+    note: text("note"),
+    canceled: boolean("canceled").notNull().default(false),
+  },
+  (table) => [unique().on(table.date, table.time, table.type)],
+);
 
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),

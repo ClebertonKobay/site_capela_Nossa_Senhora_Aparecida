@@ -95,13 +95,15 @@ A regra de mesclagem foi implementada em `src/lib/schedules.ts` (`getWeekSchedul
 
 ## Fase 4 — Admin: celebrantes
 
-- [ ] `/admin` com login
-- [ ] `/admin/celebrants` — visão do mês, edição inline, um botão salvar
+- [x] `/admin` com login
+- [x] `/admin/celebrants` — visão do mês (hoje em diante, domingo já passado não aparece), edição inline, um botão salvar
 
 Formato de tabelinha do mês com campo de texto em cada linha, não um CRUD com formulário em página separada. A secretaria pensa em "quem celebra domingo que vem", não em "criar registro".
 
-- [ ] Autocomplete de celebrante a partir dos nomes já usados — são sempre os mesmos 4 ou 5 padres
-- [ ] Feedback visível de salvo, porque essa tela vai ser usada com pressa
+- [x] Autocomplete de celebrante a partir dos nomes já usados — são sempre os mesmos 4 ou 5 padres (`<datalist>`, sem JS)
+- [x] Feedback visível de salvo, porque essa tela vai ser usada com pressa
+
+Implementado: `src/app/admin/login` (form client-side, chama `POST /api/login`), grupo de rotas `src/app/admin/(dashboard)` com layout próprio (header + botão Sair) e `celebrants/page.tsx` com Server Action `saveCelebrants` (chama `requireAdmin()` na primeira linha, upsert em `celebrations` via `onConflictDoUpdate` na constraint única `(date, time, type)`, delete quando o campo fica vazio e não-cancelado). Testado via Playwright: login errado/certo, editar e salvar celebrante, confirmar persistência após reload, confirmar que aparece mesclado na home pública, logout, e confirmar que `/admin/celebrants` volta a bloquear depois do logout.
 
 ---
 

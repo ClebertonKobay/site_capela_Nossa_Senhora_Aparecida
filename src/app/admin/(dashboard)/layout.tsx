@@ -1,5 +1,10 @@
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
+// Admin sempre dinâmico (CLAUDE.md) — nunca pré-renderizar dado
+// administrativo em build time. Vale para toda a subárvore /admin/*
+// dentro deste grupo de rotas.
+export const dynamic = "force-dynamic";
+
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-full flex-1 flex-col">

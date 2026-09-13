@@ -30,10 +30,10 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 ## Fase 1 — Banco
 
-- [ ] Schema Drizzle em `src/db/schema.ts`
-- [ ] Cliente em `src/db/index.ts`
-- [ ] Primeira migration aplicada
-- [ ] Seed com dados reais da capela para não desenvolver no vazio
+- [x] Schema Drizzle em `src/db/schema.ts`
+- [x] Cliente em `src/db/index.ts`
+- [x] Primeira migration aplicada
+- [x] Seed com dados reais da capela para não desenvolver no vazio
 
 ### Tabelas
 
@@ -158,6 +158,7 @@ Gravar o pedido antes do redirect é o que dá valor à tela seguinte. Sem isso,
 - Domínio próprio (~R$40/ano no registro.br) ou ficar no `.vercel.app`?
 - Vale colocar PIX na mensagem do WhatsApp para adiantar o pagamento?
 - Quem vai ter a senha do admin? Se for mais de uma pessoa, em algum momento vale trocar a senha única por usuários de verdade.
+- **Recorrência mensal (não semanal):** a capela tem o "Grupo de Jovens" no 2º sábado de cada mês. `fixed_schedules` só modela recorrência semanal (um `weekday` que repete toda semana), então isso não entra lá como está. Ficou de fora do seed da Fase 1. Opções para resolver depois: (a) campo extra em `fixed_schedules` tipo `occurrence` (ex: "2º sábado") e a lógica de mesclagem da Fase 3 interpreta; (b) cadastrar manualmente mês a mês pela tabela `celebrations`, que já tem data específica — mais trabalho manual pra secretaria, mas não exige mudar o schema.
 
 ## Notas
 

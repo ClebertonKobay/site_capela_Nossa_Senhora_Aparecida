@@ -28,7 +28,7 @@ Este é um site público com área administrativa. Se houver dúvida entre conve
 - Senha única de admin, guardada como hash Argon2id em env var. Nunca a senha em texto puro, nunca no client.
 - Comparação de senha só em Route Handler / Server Action. Nenhuma lógica de auth em componente client.
 - Sessão: JWT assinado com `jose` (HS256, segredo de 32+ bytes) em cookie `httpOnly`, `secure`, `sameSite: "lax"`, `maxAge` 30 dias.
-- **O `middleware.ts` não é suficiente.** Ele protege a navegação, mas toda Route Handler e Server Action que lê ou escreve dado administrativo precisa chamar `requireAdmin()` por conta própria, na primeira linha. Esse é o furo mais comum: proteger `/admin` e deixar `POST /api/eventos` aberto para qualquer um com `curl`.
+- **O `proxy.ts` (era `middleware.ts` antes do Next.js 16) não é suficiente.** Ele protege a navegação, mas toda Route Handler e Server Action que lê ou escreve dado administrativo precisa chamar `requireAdmin()` por conta própria, na primeira linha. Esse é o furo mais comum: proteger `/admin` e deixar `POST /api/events` aberto para qualquer um com `curl`.
 - Rate limit no login: máximo 5 tentativas por IP a cada 15 minutos. Resposta genérica em erro ("senha incorreta"), sem revelar detalhe.
 
 ### Entrada de dados

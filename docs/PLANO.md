@@ -8,16 +8,18 @@ Documento vivo. Marque as fases conforme terminar e edite o que mudar de ideia.
 
 - [x] `npx create-next-app@latest` com TypeScript, Tailwind, App Router, `src/`
 - [x] Criar projeto no Neon, copiar a connection string
-- [x] `.env.local` e `.env.example` com: `DATABASE_URL`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`
+- [x] `.env.local` e `.env.example` com: `DATABASE_URL`, `ADMIN_PASSWORD_HASH_BASE64`, `JWT_SECRET`
 - [x] Confirmar que `.env*` está no `.gitignore` (o `.env.example` precisa ser a exceção)
 - [x] Instalar: `drizzle-orm`, `@neondatabase/serverless`, `zod`, `jose`, `@node-rs/argon2`
 - [x] Dev: `drizzle-kit`, `@types/node`
 - [x] Primeiro deploy na Vercel, mesmo com a página em branco — descobrir problema de build no dia 1, não no dia 20
 
-**Gerar o hash da senha** (rodar uma vez, colar o resultado no `.env.local` e nas env vars da Vercel):
+**Gerar o hash da senha** (rodar uma vez, colar o resultado no `.env.local` e nas env vars da Vercel).
+Vai em base64 porque o carregador de `.env` do Next.js expande `$nome` como variável — um hash
+Argon2id cru, cheio de `$`, vira lixo se colado direto (ver `ADMIN_PASSWORD_HASH_BASE64`):
 
 ```bash
-node -e "require('@node-rs/argon2').hash('SUA_SENHA_AQUI').then(console.log)"
+node -e "require('@node-rs/argon2').hash('SUA_SENHA_AQUI').then(h => console.log(Buffer.from(h).toString('base64')))"
 ```
 
 **Gerar o JWT_SECRET:**
@@ -55,12 +57,12 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 ## Fase 2 — Autenticação
 
-- [ ] `src/lib/auth.ts` com `createSession()`, `readSession()`, `requireAdmin()`
-- [ ] `POST /api/login` — valida com Zod, compara o hash, grava o cookie
-- [ ] `POST /api/logout` — limpa o cookie
-- [ ] `middleware.ts` com matcher `/admin/:path*`
-- [ ] Rate limit no login
-- [ ] **Testar o furo:** com o navegador deslogado, tentar `curl -X POST .../api/events` com um corpo válido. Precisa voltar 401. Se criar o evento, a Fase 2 não está pronta.
+- [x] `src/lib/auth.ts` com `createSession()`, `readSession()`, `requireAdmin()`
+- [x] `POST /api/login` — valida com Zod, compara o hash, grava o cookie
+- [x] `POST /api/logout` — limpa o cookie
+- [x] `proxy.ts` (renomeado de `middleware.ts` no Next.js 16) com matcher `/admin/:path*`
+- [x] Rate limit no login — testado com curl: 6ª tentativa bloqueada mesmo com senha certa
+- [ ] **Testar o furo:** com o navegador deslogado, tentar `curl -X POST .../api/events` com um corpo válido. Precisa voltar 401. Se criar o evento, a Fase 2 não está pronta. *(Pendente até a Fase 5 criar `/api/events` — lembrar de chamar `requireAdmin()` na primeira linha da rota quando ela existir.)*
 
 ```ts
 // src/lib/auth.ts — esqueleto

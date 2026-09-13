@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { events } from "@/db/schema";
 import { formatCurrency, formatEventDateTime } from "@/lib/format";
+import { buildCardOrderMessage } from "@/lib/order-message";
 import { whatsappLink } from "@/lib/phone";
 
 export const revalidate = 300;
@@ -16,7 +17,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
   if (!event) notFound();
 
-  const buyMessage = `Olá! Tenho interesse em comprar cartela(s) do evento "${event.name}".`;
+  const buyMessage = buildCardOrderMessage(event.name, 1, event.cardPrice);
 
   return (
     <main className="flex-1 px-4 py-6">

@@ -62,7 +62,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 - [x] `POST /api/logout` — limpa o cookie
 - [x] `proxy.ts` (renomeado de `middleware.ts` no Next.js 16) com matcher `/admin/:path*`
 - [x] Rate limit no login — testado com curl: 6ª tentativa bloqueada mesmo com senha certa
-- [ ] **Testar o furo:** com o navegador deslogado, tentar `curl -X POST .../api/events` com um corpo válido. Precisa voltar 401. Se criar o evento, a Fase 2 não está pronta. *(Pendente até a Fase 5 criar `/api/events` — lembrar de chamar `requireAdmin()` na primeira linha da rota quando ela existir.)*
+- [x] **Testar o furo.** A Fase 5 não criou `POST /api/events` — criar/editar/excluir evento virou Server Action dentro de `src/app/admin/(dashboard)/events/actions.ts`, no próprio caminho `/admin/*`. Isso significa que o matcher do proxy (`/admin/:path*`) já barra a chamada não-autenticada antes mesmo dela chegar na action — testado com `curl -X POST http://localhost:3000/admin/events/new` sem cookie, voltou 307 pro login. E cada action ainda chama `requireAdmin()` na primeira linha, como segunda camada.
 
 ```ts
 // src/lib/auth.ts — esqueleto
@@ -109,8 +109,8 @@ Implementado: `src/app/admin/login` (form client-side, chama `POST /api/login`),
 
 ## Fase 5 — Admin: eventos
 
-- [ ] `/admin/events` — lista
-- [ ] `/admin/events/new` e `/admin/events/[id]`
+- [x] `/admin/events` — lista (com editar e excluir, sem estar no checklist original — CRUD sem exclusão não fazia sentido)
+- [x] `/admin/events/new` e `/admin/events/[id]`
 
 Campos do formulário: nome da festa, descrição, data/hora de início e fim, local, telefone do WhatsApp, preço da cartela, "vende cartela?", "destacar na home?".
 
@@ -122,10 +122,12 @@ Serve para quem cadastra confirmar, antes de publicar, que o número está certo
 
 Comportamento:
 
-- [ ] Desabilitado enquanto o telefone não for válido, com o motivo escrito ao lado ("faltam 2 dígitos")
-- [ ] Abre em nova aba (`target="_blank"`, `rel="noopener"`) para não perder o formulário preenchido
-- [ ] Funciona **antes** de salvar, usando o valor atual do campo — o ponto é testar antes de publicar
-- [ ] Mostrar embaixo a prévia da mensagem em texto, porque no desktop o `wa.me` abre o WhatsApp Web e nem todo mundo tem sessão aberta
+- [x] Desabilitado enquanto o telefone não for válido, com o motivo escrito ao lado ("faltam 2 dígitos")
+- [x] Abre em nova aba (`target="_blank"`, `rel="noopener"`) para não perder o formulário preenchido
+- [x] Funciona **antes** de salvar, usando o valor atual do campo — o ponto é testar antes de publicar
+- [x] Mostrar embaixo a prévia da mensagem em texto, porque no desktop o `wa.me` abre o WhatsApp Web e nem todo mundo tem sessão aberta
+
+Implementado em `src/components/admin/EventForm.tsx` (client component, reaproveitado por `new` e `[id]`) e `src/lib/order-message.ts` (mensagem compartilhada com a Fase 6 — quantidade 1, mesmo texto que o comprador real vai mandar). Datas: `<input type="datetime-local">` não carrega fuso, então `parseSaoPauloDateTime`/`toSaoPauloDateTimeLocal` (`src/lib/format.ts`) tratam esse valor como horário de São Paulo (fixo UTC-3, sem horário de verão desde 2019) na ida e na volta do formulário. Testado via Playwright: telefone incompleto desabilita o botão com a mensagem certa, telefone completo monta o link `wa.me` certo, criar/editar preserva o horário digitado (15:00 entra, 15:00 volta — confirmado também direto no banco: `18:00:00.000Z` = 15h em São Paulo), evento aparece na home, excluir remove de verdade.
 
 ---
 

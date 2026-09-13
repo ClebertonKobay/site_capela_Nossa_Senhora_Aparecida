@@ -29,3 +29,34 @@ export function formatTime(time: string): string {
   const [hour, minute] = time.split(":");
   return minute === "00" ? `${hour}h` : `${hour}h${minute}`;
 }
+
+// "10,00" ou "10.00" -> 1000 (centavos). null se vazio/inválido.
+export function parseCurrencyToCents(input: string): number | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  const value = Number(trimmed.replace(",", "."));
+  if (!Number.isFinite(value) || value < 0) return null;
+  return Math.round(value * 100);
+}
+
+// Brasil não observa horário de verão desde 2019 — São Paulo é sempre
+// UTC-3, fixo. Isso permite tratar <input type="datetime-local"> (que
+// não carrega fuso) como horário de São Paulo de forma segura, sem
+// depender do fuso do servidor (Vercel roda em UTC).
+export function parseSaoPauloDateTime(value: string): Date {
+  return new Date(`${value}:00-03:00`);
+}
+
+export function toSaoPauloDateTimeLocal(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)!.value;
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}

@@ -9,6 +9,12 @@ export default function AdminHomePage() {
       >
         Celebrantes do mês
       </Link>
+      <Link
+        href="/admin/events"
+        className="block border-2 border-primary-light px-4 py-3 text-lg font-semibold text-primary"
+      >
+        Eventos
+      </Link>
     </div>
   );
 }

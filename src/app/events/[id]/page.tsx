@@ -1,11 +1,10 @@
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
+import { BuyCards } from "@/components/BuyCards";
 import { db } from "@/db";
 import { events } from "@/db/schema";
 import { formatCurrency, formatEventDateTime } from "@/lib/format";
-import { buildCardOrderMessage } from "@/lib/order-message";
-import { whatsappLink } from "@/lib/phone";
 
 export const revalidate = 300;
 
@@ -16,8 +15,6 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
 
   const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
   if (!event) notFound();
-
-  const buyMessage = buildCardOrderMessage(event.name, 1, event.cardPrice);
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -32,14 +29,14 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
           {event.cardPrice != null && (
             <p className="text-lg font-semibold text-primary">Cartela: {formatCurrency(event.cardPrice)}</p>
           )}
-          <a
-            href={whatsappLink(event.whatsappPhone, buyMessage)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-block min-h-11 bg-accent px-6 py-3 text-lg font-semibold text-primary"
-          >
-            Comprar cartela pelo WhatsApp
-          </a>
+          <div className="mt-3">
+            <BuyCards
+              eventId={event.id}
+              eventName={event.name}
+              whatsappPhone={event.whatsappPhone}
+              cardPriceCents={event.cardPrice}
+            />
+          </div>
         </div>
       )}
     </main>

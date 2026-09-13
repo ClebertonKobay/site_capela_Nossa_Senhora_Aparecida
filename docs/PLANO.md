@@ -133,18 +133,20 @@ Implementado em `src/components/admin/EventForm.tsx` (client component, reaprove
 
 ## Fase 6 — Venda de cartelas
 
-- [ ] Componente `BuyCards` na página do evento
-- [ ] Campos: nome, telefone, quantidade (stepper `-` / `+`, não um `<input type="number">` — dedo grande, tela pequena)
-- [ ] Total calculado ao vivo
-- [ ] `POST /api/orders` grava antes de redirecionar
-- [ ] Só então abrir o `wa.me`
+- [x] Componente `BuyCards` na página do evento
+- [x] Campos: nome, telefone, quantidade (stepper `-` / `+`, não um `<input type="number">` — dedo grande, tela pequena)
+- [x] Total calculado ao vivo
+- [x] `POST /api/orders` grava antes de redirecionar
+- [x] Só então abrir o `wa.me`
 
 Gravar o pedido antes do redirect é o que dá valor à tela seguinte. Sem isso, quem desiste no meio do caminho some.
 
-- [ ] `/admin/orders` — lista com nome, telefone, quantidade e data, para a comissão da festa ligar de volta
-- [ ] Exportar CSV (pode ser um `<a download>` com `Blob`, sem biblioteca)
+- [x] `/admin/orders` — lista com nome, telefone, quantidade e data, para a comissão da festa ligar de volta
+- [x] Exportar CSV (pode ser um `<a download>` com `Blob`, sem biblioteca)
 
 > `POST /api/orders` é público, então precisa de cuidado próprio: validação Zod estrita, `quantity` limitada a um máximo razoável (ex. 50) e rate limit por IP. Sem isso, é um formulário aberto para encher a tabela de lixo.
+
+Implementado em `src/app/api/orders/route.ts` (Zod estrito, `quantity` 1-50, rate limit reaproveitando `tooManyAttempts` com chave `order:<ip>`), `src/components/BuyCards.tsx` (client, stepper com botões `-`/`+`, total ao vivo via `formatCurrency`) e `src/app/admin/(dashboard)/orders`. Testado via curl (quantidade>50 → 400, telefone inválido → 400, evento inexistente → 404, 6ª tentativa do mesmo IP → 429) e via Playwright (compra completa: pedido gravado no banco *antes* de tentar abrir o `wa.me` — confirmado interceptando a navegação para `wa.me` e checando a query da mensagem; export CSV baixado e conferido linha a linha).
 
 ---
 

@@ -15,6 +15,12 @@ export default function AdminHomePage() {
       >
         Eventos
       </Link>
+      <Link
+        href="/admin/orders"
+        className="block border-2 border-primary-light px-4 py-3 text-lg font-semibold text-primary"
+      >
+        Pedidos de cartela
+      </Link>
     </div>
   );
 }

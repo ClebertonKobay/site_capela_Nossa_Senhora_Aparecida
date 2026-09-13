@@ -7,6 +7,18 @@ export function formatCurrency(cents: number): string {
   });
 }
 
+// Compacto, para tabelas: "13/09/2026 14:30"
+export function formatDateTime(date: Date): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: TIME_ZONE,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export function formatEventDateTime(date: Date): string {
   return new Intl.DateTimeFormat("pt-BR", {
     timeZone: TIME_ZONE,

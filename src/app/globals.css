@@ -11,6 +11,7 @@
   --primary: #1b3a6b;
   --primary-light: #3d6fa8;
   --accent: #d4a537;
+  --sky: #dceefa;
 }
 
 @theme inline {
@@ -19,6 +20,7 @@
   --color-primary: var(--primary);
   --color-primary-light: var(--primary-light);
   --color-accent: var(--accent);
+  --color-sky: var(--sky);
   --font-sans: var(--font-geist-sans);
 }
 
@@ -29,9 +31,25 @@ body {
   font-size: 16px;
 }
 
-/* Foco de teclado sempre visível, com contraste alto (dourado sobre
-   qualquer fundo) — não depende do estilo padrão do navegador. */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 :focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
+}
+
+.photo-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 3rem 0.25rem rgba(27, 58, 107, 0.65);
 }

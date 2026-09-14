@@ -1,21 +1,53 @@
 import { and, asc, gte, isNotNull, or } from "drizzle-orm";
+import Image from "next/image";
 import Link from "next/link";
 
+import capelaPhoto from "@/assets/capela.png";
+import catequistasPhoto from "@/assets/catequistas.jpeg";
+import grupoDeJovensPhoto from "@/assets/grupo_de_jovens_2.jpg";
+import grupoDeOracaoPhoto from "@/assets/grupo_de_oracao.jpg";
+import santaMissaPhoto from "@/assets/santa_missa.jpg";
 import { db } from "@/db";
 import { events } from "@/db/schema";
-import { formatCurrency, formatEventDateTime, formatShortDate, formatTime } from "@/lib/format";
+import { ArchDivider } from "@/components/ArchDivider";
+import { Footer } from "@/components/Footer";
+import { Header } from "@/components/Header";
+import { ACTIVITY_ICONS } from "@/components/icons";
+import { MinistrySection } from "@/components/MinistrySection";
+import { ScheduleScrollIndicator } from "@/components/ScheduleScrollIndicator";
 import {
-  ACTIVITY_TYPE_LABELS,
+  formatCurrency,
+  formatEventDateTime,
+  formatShortDate,
+  formatTime,
+  formatWeekdayList,
+} from "@/lib/format";
+import {
+  CHAPEL_ADDRESS,
+  MAPS_EMBED_SRC,
+  MAPS_LINK,
+  PRAYER_GROUP_INSTAGRAM,
+  YOUTH_GROUP_INSTAGRAM,
+} from "@/lib/location";
+import {
   WEEKDAY_LABELS,
+  getActivityHighlights,
   getNextMass,
   getWeekSchedule,
+  isPatronessFeastWindow,
 } from "@/lib/schedules";
 
-export const revalidate = 300;
+// Placeholder: o Grupo de Jovens não está em fixed_schedules (recorrência
+// mensal — 2º sábado do mês —, fora do que a tabela modela hoje). Ajustar
+// aqui assim que o horário real for confirmado.
+const YOUTH_GROUP_SCHEDULE_LABEL = "2º sábado do mês (horário a confirmar)";
 
-const MAPS_EMBED_SRC = "https://www.google.com/maps?q=-25.0582828,-50.1536695&z=17&output=embed";
-const MAPS_LINK =
-  "https://www.google.com/maps/place/Capela+Nossa+Senhora+Aparecida/@-25.0579981,-50.1537934,19.83z/data=!4m6!3m5!1s0x94e81920eea21979:0xf7d21fcd3578d31!8m2!3d-25.0582828!4d-50.1536695!16s%2Fg%2F11f5mb4rj9";
+// Placeholder: texto genérico até a paróquia mandar o texto real de
+// história/devoção da capela — não inventar fatos históricos específicos.
+const ABOUT_TEXT =
+  "A Capela Nossa Senhora Aparecida é um espaço de fé, acolhida e comunidade no bairro Boa Vista, em Ponta Grossa. Aqui celebramos a Santa Missa, rezamos juntos e cuidamos da formação de crianças, jovens e adultos na caminhada da fé — sempre sob o olhar de Nossa Senhora Aparecida, padroeira do Brasil.";
+
+export const revalidate = 300;
 
 async function getUpcomingEvents() {
   const now = new Date();
@@ -28,103 +60,209 @@ async function getUpcomingEvents() {
 }
 
 export default async function HomePage() {
-  const [nextMass, week, upcomingEvents] = await Promise.all([
+  const [nextMass, week, upcomingEvents, highlights] = await Promise.all([
     getNextMass(),
     getWeekSchedule(),
     getUpcomingEvents(),
+    getActivityHighlights(),
   ]);
 
+  const massLabel = highlights.mass[0]
+    ? `${WEEKDAY_LABELS[highlights.mass[0].weekday]} · ${formatTime(highlights.mass[0].time)}`
+    : "Consulte o mural da capela";
+  const prayerGroupLabel = highlights.prayer_group[0]
+    ? `${WEEKDAY_LABELS[highlights.prayer_group[0].weekday]} · ${formatTime(highlights.prayer_group[0].time)}`
+    : "Consulte o mural da capela";
+  const catechismLabel = highlights.catechism.length
+    ? formatWeekdayList(highlights.catechism.map((h) => h.weekday))
+    : "Consulte o mural da capela";
+
+  const scrollIndicatorSections = [
+    { id: "santa-missa", label: massLabel },
+    { id: "grupo-oracao", label: prayerGroupLabel },
+    { id: "catequese", label: catechismLabel },
+    { id: "grupo-jovens", label: YOUTH_GROUP_SCHEDULE_LABEL },
+  ];
+
   return (
-    <main className="flex-1">
-      <header className="bg-primary px-4 py-6 text-white">
-        <h1 className="text-2xl font-bold">Capela Nossa Senhora Aparecida</h1>
-        <p className="mt-1 text-base text-white/80">Boa Vista, Ponta Grossa - PR</p>
-      </header>
-
-      {nextMass && (
-        <section className="bg-accent px-4 py-6 text-primary">
-          <p className="text-sm font-semibold uppercase tracking-wide">Próxima Missa</p>
-          <p className="mt-1 text-3xl font-bold">
-            {WEEKDAY_LABELS[nextMass.weekday]}, {formatShortDate(nextMass.date)} às {formatTime(nextMass.time)}
-          </p>
-          {nextMass.celebrant && <p className="mt-1 text-lg">Celebrante: {nextMass.celebrant}</p>}
-          {nextMass.note && <p className="mt-1 text-base">{nextMass.note}</p>}
-        </section>
-      )}
-
-      <section className="px-4 py-6">
-        <h2 className="text-xl font-bold text-primary">Horários da semana</h2>
-        <div className="mt-4 flex flex-col gap-3">
-          {week.map((day) => (
-            <div key={day.date} className="border-l-4 border-primary-light pl-3">
-              <p className="font-semibold text-primary">
-                {WEEKDAY_LABELS[day.weekday]} · {formatShortDate(day.date)}
-              </p>
-              {day.items.length === 0 ? (
-                <p className="text-base text-foreground/60">Sem atividades programadas.</p>
-              ) : (
-                <ul className="mt-1 flex flex-col gap-1">
-                  {day.items.map((item) => (
-                    <li key={`${item.time}-${item.description}`} className="text-base">
-                      <span className="font-semibold">{formatTime(item.time)}</span> — {item.description}
-                      {item.celebrant && ` (${item.celebrant})`}
-                      {item.note && <span className="block text-sm text-foreground/70">{item.note}</span>}
-                    </li>
-                  ))}
-                </ul>
-              )}
+    <div className="min-h-screen bg-sky">
+      <div className="mx-2 my-2 flex flex-col bg-background shadow-xl sm:mx-4 sm:my-4 sm:rounded-t-3xl lg:mx-auto lg:w-[90%]">
+        <Header />
+        <main className="flex-1">
+          {isPatronessFeastWindow() && (
+            <div className="mx-3 mt-3 rounded-2xl bg-primary px-4 py-3 text-center text-white shadow-lg">
+              <p className="text-sm font-semibold uppercase tracking-wide text-accent">12 de outubro</p>
+              <p className="text-base font-semibold">Dia de Nossa Senhora Aparecida, padroeira do Brasil</p>
             </div>
-          ))}
-        </div>
-      </section>
+          )}
 
-      <section className="bg-primary/5 px-4 py-6">
-        <h2 className="text-xl font-bold text-primary">Próximos eventos</h2>
-        {upcomingEvents.length === 0 ? (
-          <p className="mt-2 text-base text-foreground/60">Nenhum evento programado no momento.</p>
-        ) : (
-          <ul className="mt-4 flex flex-col gap-3">
-            {upcomingEvents.map((event) => (
-              <li key={event.id}>
-                <Link
-                  href={`/events/${event.id}`}
-                  className="block border-2 border-primary-light bg-background px-4 py-3"
-                >
-                  <p className="font-semibold text-primary">
-                    {event.featured && <span className="mr-1 text-accent">★</span>}
-                    {event.name}
-                  </p>
-                  <p className="text-base">{formatEventDateTime(event.startAt)}</p>
-                  {event.sellsCards && event.cardPrice != null && (
-                    <p className="text-sm text-foreground/70">Cartela: {formatCurrency(event.cardPrice)}</p>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          <section
+            id="inicio"
+            className="photo-vignette relative aspect-[4/3] w-full overflow-hidden sm:rounded-t-3xl"
+          >
+            <Image
+              src={capelaPhoto}
+              alt="Fachada da Capela Nossa Senhora Aparecida"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+          </section>
 
-      <section className="px-4 py-6">
-        <h2 className="text-xl font-bold text-primary">Como chegar</h2>
-        <p className="mt-2 text-base">R. Pedro Lessinski, S/N - Boa Vista, Ponta Grossa - PR, 84073-179</p>
-        <a
-          href={MAPS_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-1 inline-block text-base font-semibold text-primary-light underline"
-        >
-          Abrir no Google Maps
-        </a>
-        <div className="mt-4 aspect-[4/3] w-full overflow-hidden border-2 border-primary-light">
-          <iframe
-            src={MAPS_EMBED_SRC}
-            title="Mapa com a localização da Capela Nossa Senhora Aparecida"
-            loading="lazy"
-            className="h-full w-full"
+          <div className="px-4 pt-8 pb-10 text-center">
+            <h1 className="text-2xl font-bold text-primary sm:text-3xl">Capela Nossa Senhora Aparecida</h1>
+            <p className="mt-1 text-base text-foreground/70">Boa Vista, Ponta Grossa - PR</p>
+          </div>
+
+          {nextMass && (
+            <section className="relative z-10 mx-3 -mt-6 rounded-3xl bg-accent px-5 py-6 text-primary shadow-xl sm:-mt-8">
+              <p className="text-sm font-semibold uppercase tracking-wide">Próxima Missa</p>
+              <p className="mt-1 text-3xl font-bold sm:text-4xl">
+                {WEEKDAY_LABELS[nextMass.weekday]}, {formatShortDate(nextMass.date)} às {formatTime(nextMass.time)}
+              </p>
+              <p className="mt-1 text-lg">Celebrante: {nextMass.celebrant ?? "A definir"}</p>
+              {nextMass.note && <p className="mt-1 text-base">{nextMass.note}</p>}
+            </section>
+          )}
+
+          <ArchDivider className="mt-10" />
+
+          <section className="px-4 py-6 text-center">
+            <p className="mx-auto max-w-2xl text-lg">{ABOUT_TEXT}</p>
+          </section>
+
+          <MinistrySection
+            id="santa-missa"
+            title="Santa Missa"
+            description="Venha conhecer e participar da Santa Missa com a nossa comunidade."
+            scheduleLabel={massLabel}
+            photo={{ src: santaMissaPhoto, alt: "Celebração da Santa Missa na Capela Nossa Senhora Aparecida" }}
+            reverse={false}
+            tone="primary-light"
           />
-        </div>
-      </section>
-    </main>
+
+          <MinistrySection
+            id="grupo-oracao"
+            title="Grupo de Oração Porta do Céu"
+            description="Venha louvar com a gente no Grupo de Oração Porta do Céu."
+            scheduleLabel={prayerGroupLabel}
+            photo={{ src: grupoDeOracaoPhoto, alt: "Encontro do Grupo de Oração Porta do Céu", position: "top" }}
+            instagram={PRAYER_GROUP_INSTAGRAM}
+            reverse={true}
+            tone="accent"
+          />
+
+          <MinistrySection
+            id="catequese"
+            title="Catequese"
+            description="Coloque seu filho na catequese e venha fazer parte dessa caminhada de fé."
+            scheduleLabel={catechismLabel}
+            photo={{ src: catequistasPhoto, alt: "Equipe de catequistas da Capela Nossa Senhora Aparecida" }}
+            reverse={false}
+            tone="primary-light"
+          />
+
+          <MinistrySection
+            id="grupo-jovens"
+            title="Grupo de Jovens Aos Pés da Cruz"
+            description="Venha participar do Grupo de Jovens da nossa comunidade e nos conhecer."
+            scheduleLabel={YOUTH_GROUP_SCHEDULE_LABEL}
+            photo={{ src: grupoDeJovensPhoto, alt: "Grupo de Jovens Aos Pés da Cruz reunido na capela", position: "top" }}
+            instagram={YOUTH_GROUP_INSTAGRAM}
+            reverse={true}
+            tone="accent"
+          />
+
+          <ArchDivider className="mt-4" />
+
+          <section className="px-4 py-6">
+            <h2 className="text-xl font-bold text-primary">Horários da semana</h2>
+            <div className="mt-4 flex flex-col gap-3">
+              {week.map((day) => (
+                <div key={day.date} className="border-l-4 border-primary-light pl-3">
+                  <p className="font-semibold text-primary">
+                    {WEEKDAY_LABELS[day.weekday]} · {formatShortDate(day.date)}
+                  </p>
+                  {day.items.length === 0 ? (
+                    <p className="text-base text-foreground/60">Sem atividades programadas.</p>
+                  ) : (
+                    <ul className="mt-1 flex flex-col gap-1">
+                      {day.items.map((item) => {
+                        const ActivityIcon = ACTIVITY_ICONS[item.type];
+                        return (
+                          <li key={`${item.time}-${item.description}`} className="flex items-start gap-2 text-base">
+                            <ActivityIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary-light" />
+                            <span>
+                              <span className="font-semibold">{formatTime(item.time)}</span> — {item.description}
+                              {item.celebrant && ` (${item.celebrant})`}
+                              {item.note && <span className="block text-sm text-foreground/70">{item.note}</span>}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section id="eventos" className="scroll-mt-24 bg-primary/5 px-4 py-6">
+            <h2 className="text-xl font-bold text-primary">Próximos eventos</h2>
+            {upcomingEvents.length === 0 ? (
+              <p className="mt-2 text-base text-foreground/60">Nenhum evento programado no momento.</p>
+            ) : (
+              <ul className="mt-4 flex flex-col gap-3">
+                {upcomingEvents.map((event) => (
+                  <li key={event.id}>
+                    <Link
+                      href={`/events/${event.id}`}
+                      className="block border-2 border-primary-light bg-background px-4 py-3"
+                    >
+                      <p className="font-semibold text-primary">
+                        {event.featured && <span className="mr-1 text-accent">★</span>}
+                        {event.name}
+                      </p>
+                      <p className="text-base">{formatEventDateTime(event.startAt)}</p>
+                      {event.sellsCards && event.cardPrice != null && (
+                        <p className="text-sm text-foreground/70">Cartela: {formatCurrency(event.cardPrice)}</p>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section id="como-chegar" className="scroll-mt-24 px-4 py-8">
+            <h2 className="text-xl font-bold text-primary">Como chegar</h2>
+            <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-center">
+              <div className="md:w-1/2">
+                <p className="text-base">{CHAPEL_ADDRESS}</p>
+                <a
+                  href={MAPS_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-block text-base font-semibold text-primary-light underline"
+                >
+                  Abrir no Google Maps
+                </a>
+              </div>
+              <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-lg md:w-1/2">
+                <iframe
+                  src={MAPS_EMBED_SRC}
+                  title="Mapa com a localização da Capela Nossa Senhora Aparecida"
+                  loading="lazy"
+                  className="h-full w-full"
+                />
+              </div>
+            </div>
+          </section>
+        </main>
+        <Footer />
+      </div>
+      <ScheduleScrollIndicator sections={scrollIndicatorSections} />
+    </div>
   );
 }

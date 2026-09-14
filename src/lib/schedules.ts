@@ -156,6 +156,42 @@ export async function getWeekSchedule(): Promise<DaySchedule[]> {
   });
 }
 
+// Dia/horário recorrente de cada ministério (semanal, direto de
+// fixed_schedules), para as seções de convite da home — não confundir com
+// getNextMass, que calcula a próxima ocorrência real a partir de agora.
+export type ActivityHighlight = { weekday: number; time: string };
+
+export async function getActivityHighlights(): Promise<
+  Record<"mass" | "prayer_group" | "catechism", ActivityHighlight[]>
+> {
+  const rows = await db.select().from(fixedSchedules).where(eq(fixedSchedules.active, true));
+
+  const highlights: Record<"mass" | "prayer_group" | "catechism", ActivityHighlight[]> = {
+    mass: [],
+    prayer_group: [],
+    catechism: [],
+  };
+
+  for (const row of rows) {
+    if (row.type === "mass" || row.type === "prayer_group" || row.type === "catechism") {
+      highlights[row.type].push({ weekday: row.weekday, time: row.time });
+    }
+  }
+
+  for (const type of Object.keys(highlights) as (keyof typeof highlights)[]) {
+    highlights[type].sort((a, b) => a.weekday - b.weekday || a.time.localeCompare(b.time));
+  }
+
+  return highlights;
+}
+
+// Janela do banner sazonal do dia da padroeira (12 de outubro): da novena
+// (5/10) até o dia da festa, ancorado no calendário de São Paulo.
+export function isPatronessFeastWindow(): boolean {
+  const { month, day } = todayInSaoPaulo();
+  return month === 10 && day >= 5 && day <= 12;
+}
+
 // Próxima missa a partir de agora, olhando os próximos `withinDays` dias.
 export async function getNextMass(withinDays = 14): Promise<ScheduleOccurrence | null> {
   const today = todayInSaoPaulo();

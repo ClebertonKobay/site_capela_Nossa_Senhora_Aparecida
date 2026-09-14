@@ -10,8 +10,6 @@ const ICON_PANEL_CLASSES: Record<Tone, string> = {
   accent: "bg-accent/15 text-accent",
 };
 
-// Cor sólida da "soleira" (ledge) embaixo da foto/ícone — mais grossa e
-// mais arredondada que o topo, tipo peitoril de janela.
 const SILL_CLASSES: Record<Tone, string> = {
   "primary-light": "bg-primary",
   accent: "bg-accent",

@@ -1,17 +1,12 @@
 @import "tailwindcss";
 
-/*
- * Paleta do manto de Nossa Senhora Aparecida: azul-manto escuro (primário),
- * azul-manto claro (apoio/links), dourado (destaque/CTA), branco-céu (fundo).
- * Visual intencional e fixo — não varia com o tema do sistema.
- */
 :root {
   --background: #f7f4ec;
   --foreground: #1f2937;
   --primary: #1b3a6b;
   --primary-light: #3d6fa8;
   --accent: #d4a537;
-  --sky: #dceefa;
+  --sky: #3a86ff;
 }
 
 @theme inline {

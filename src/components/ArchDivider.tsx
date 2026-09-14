@@ -1,8 +1,6 @@
 const ARCH_COUNT = 8;
 const ARCH_WIDTH = 40;
 
-// Fileira decorativa de arcos, ecoando as janelas em arco da própria
-// fachada da capela — divisor sutil entre seções, sem custo de imagem.
 export function ArchDivider({ className = "" }: { className?: string }) {
   return (
     <svg

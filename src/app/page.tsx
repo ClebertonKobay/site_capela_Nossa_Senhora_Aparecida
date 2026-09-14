@@ -37,13 +37,8 @@ import {
   isPatronessFeastWindow,
 } from "@/lib/schedules";
 
-// Placeholder: o Grupo de Jovens não está em fixed_schedules (recorrência
-// mensal — 2º sábado do mês —, fora do que a tabela modela hoje). Ajustar
-// aqui assim que o horário real for confirmado.
 const YOUTH_GROUP_SCHEDULE_LABEL = "2º sábado do mês (horário a confirmar)";
 
-// Placeholder: texto genérico até a paróquia mandar o texto real de
-// história/devoção da capela — não inventar fatos históricos específicos.
 const ABOUT_TEXT =
   "A Capela Nossa Senhora Aparecida é um espaço de fé, acolhida e comunidade no bairro Boa Vista, em Ponta Grossa. Aqui celebramos a Santa Missa, rezamos juntos e cuidamos da formação de crianças, jovens e adultos na caminhada da fé — sempre sob o olhar de Nossa Senhora Aparecida, padroeira do Brasil.";
 
@@ -78,10 +73,10 @@ export default async function HomePage() {
     : "Consulte o mural da capela";
 
   const scrollIndicatorSections = [
-    { id: "santa-missa", label: massLabel },
-    { id: "grupo-oracao", label: prayerGroupLabel },
-    { id: "catequese", label: catechismLabel },
-    { id: "grupo-jovens", label: YOUTH_GROUP_SCHEDULE_LABEL },
+    { id: "santa-missa", title: "Santa Missa", label: massLabel },
+    { id: "grupo-oracao", title: "Grupo de Oração", label: prayerGroupLabel },
+    { id: "catequese", title: "Catequese", label: catechismLabel },
+    { id: "grupo-jovens", title: "Grupo de Jovens", label: YOUTH_GROUP_SCHEDULE_LABEL },
   ];
 
   return (

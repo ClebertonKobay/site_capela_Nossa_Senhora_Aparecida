@@ -24,16 +24,14 @@ export const ACTIVITY_TYPE_LABELS = {
 } as const;
 
 export type ScheduleOccurrence = {
-  date: string; // YYYY-MM-DD
+  date: string;
   weekday: number;
-  time: string; // HH:MM:SS
+  time: string;
   description: string;
   type: keyof typeof ACTIVITY_TYPE_LABELS;
   celebrant: string | null;
   note: string | null;
 };
-
-// --- Utilidades de data, sempre ancoradas no calendário de São Paulo ---
 
 export function todayInSaoPaulo(): { year: number; month: number; day: number } {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -57,8 +55,6 @@ function nowInSaoPaulo(): { hour: number; minute: number } {
   return { hour: get("hour"), minute: get("minute") };
 }
 
-// Data "sem hora", ancorada em UTC meia-noite — evita que o fuso do
-// servidor (Vercel roda em UTC) interfira na aritmética de dias.
 export function dateOnlyUTC(year: number, month: number, day: number): Date {
   return new Date(Date.UTC(year, month - 1, day));
 }
@@ -70,8 +66,6 @@ export function addDays(date: Date, days: number): Date {
 export function toISODate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
-
-// --- Mesclagem: grade fixa + exceções de uma data específica ---
 
 function mergeDay(
   dateISO: string,
@@ -96,7 +90,6 @@ function mergeDay(
     };
   });
 
-  // Exceções sem horário fixo correspondente são celebrações extras do dia.
   const extra = exceptionsOfDay
     .filter((e) => !fixedTimes.has(e.time))
     .map((e) => ({
@@ -122,7 +115,6 @@ export type DaySchedule = {
   items: ScheduleOccurrence[];
 };
 
-// Grade da semana (domingo a sábado) que contém hoje, já mesclada.
 export async function getWeekSchedule(): Promise<DaySchedule[]> {
   const today = todayInSaoPaulo();
   const todayUTC = dateOnlyUTC(today.year, today.month, today.day);
@@ -156,9 +148,6 @@ export async function getWeekSchedule(): Promise<DaySchedule[]> {
   });
 }
 
-// Dia/horário recorrente de cada ministério (semanal, direto de
-// fixed_schedules), para as seções de convite da home — não confundir com
-// getNextMass, que calcula a próxima ocorrência real a partir de agora.
 export type ActivityHighlight = { weekday: number; time: string };
 
 export async function getActivityHighlights(): Promise<
@@ -185,14 +174,11 @@ export async function getActivityHighlights(): Promise<
   return highlights;
 }
 
-// Janela do banner sazonal do dia da padroeira (12 de outubro): da novena
-// (5/10) até o dia da festa, ancorado no calendário de São Paulo.
 export function isPatronessFeastWindow(): boolean {
   const { month, day } = todayInSaoPaulo();
   return month === 10 && day >= 5 && day <= 12;
 }
 
-// Próxima missa a partir de agora, olhando os próximos `withinDays` dias.
 export async function getNextMass(withinDays = 14): Promise<ScheduleOccurrence | null> {
   const today = todayInSaoPaulo();
   const todayUTC = dateOnlyUTC(today.year, today.month, today.day);

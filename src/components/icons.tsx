@@ -1,5 +1,3 @@
-// Ícones simples em SVG inline, sem lib externa — traço geométrico, no
-// estilo "recorte de mural", não ilustração realista.
 import type { ComponentType } from "react";
 
 export function MassIcon({ className }: { className?: string }) {
@@ -78,8 +76,6 @@ export function NovenaIcon({ className }: { className?: string }) {
   );
 }
 
-// Ícone por tipo de atividade (mesmos tipos de celebration_type no schema),
-// usado na grade de horários da semana pra ficar mais visual/escaneável.
 export const ACTIVITY_ICONS: Record<
   "mass" | "rosary" | "novena" | "prayer_group" | "catechism",
   ComponentType<{ className?: string }>

@@ -5,17 +5,11 @@ import { useEffect, useState } from "react";
 export function ScheduleScrollIndicator({
   sections,
 }: {
-  sections: { id: string; label: string }[];
+  sections: { id: string; title: string; label: string }[];
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Um Set com as seções atualmente na "faixa central" da tela — o
-    // IntersectionObserver só manda as entradas que mudaram de estado a
-    // cada callback, então precisamos acumular pra saber se AINDA sobra
-    // alguma intersectando (senão o indicador ficava preso mostrando a
-    // última seção visitada mesmo depois de rolar pra "Eventos"/"Como
-    // chegar", ou antes de chegar na primeira seção).
     const intersecting = new Set<string>();
 
     const observer = new IntersectionObserver(
@@ -49,7 +43,7 @@ export function ScheduleScrollIndicator({
       className="fixed inset-x-0 bottom-0 z-30 rounded-t-3xl border-t-4 border-accent bg-primary px-4 py-3 text-white shadow-xl
         md:inset-x-auto md:top-1/2 md:right-4 md:bottom-auto md:w-56 md:-translate-y-1/2 md:rounded-3xl md:border-4 md:border-t-4 md:border-accent md:px-4 md:py-4"
     >
-      <p className="text-sm text-white/70">Confira o horário</p>
+      <p className="text-sm text-white/70">{active.title}</p>
       <p className="text-lg font-bold">{active.label}</p>
     </div>
   );

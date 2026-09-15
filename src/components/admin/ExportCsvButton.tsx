@@ -32,7 +32,7 @@ export function ExportCsvButton({ rows }: { rows: Row[] }) {
     <button
       type="button"
       onClick={handleExport}
-      className="flex min-h-11 items-center border-2 border-primary-light px-4 py-2 text-base font-semibold text-primary"
+      className="btn btn-secondary"
     >
       Exportar CSV
     </button>

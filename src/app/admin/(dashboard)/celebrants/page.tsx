@@ -116,7 +116,7 @@ export default async function CelebrantsPage({
       <h1 className="text-xl font-bold text-primary">Celebrantes do mês</h1>
 
       {saved && (
-        <p className="mt-3 border-2 border-primary bg-primary/10 px-3 py-2 text-base font-semibold text-primary">
+        <p className="mt-3 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-body font-semibold text-success">
           Salvo com sucesso!
         </p>
       )}
@@ -146,8 +146,9 @@ export default async function CelebrantsPage({
                       name={`celebrant-${slot.date}`}
                       list="celebrants-list"
                       placeholder="Nome do celebrante"
+                      aria-label={`Nome do celebrante em ${WEEKDAY_LABELS[slot.weekday]}, ${formatShortDate(slot.date)}`}
                       defaultValue={existing?.celebrant ?? ""}
-                      className="min-h-11 flex-1 border-2 border-primary-light px-3 py-2 text-base"
+                      className="field flex-1"
                     />
                     <label className="flex min-h-11 items-center gap-2 text-base">
                       <input
@@ -164,12 +165,14 @@ export default async function CelebrantsPage({
             })}
           </div>
 
-          <button
-            type="submit"
-            className="mt-6 min-h-11 w-full bg-accent px-4 py-3 text-lg font-semibold text-primary sm:w-auto"
-          >
-            Salvar
-          </button>
+          <div className="sticky bottom-0 -mx-4 mt-6 border-t border-border bg-background px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+            <button
+              type="submit"
+              className="btn btn-confirm w-full px-4 py-3 text-lg sm:w-auto"
+            >
+              Salvar
+            </button>
+          </div>
         </form>
       )}
     </div>

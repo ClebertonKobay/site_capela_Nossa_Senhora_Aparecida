@@ -61,7 +61,7 @@ export function BuyCards({
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 min-h-11 w-full border-2 border-primary-light px-3 py-2 text-base"
+          className="field mt-1"
         />
       </div>
 
@@ -75,7 +75,7 @@ export function BuyCards({
           placeholder="(42) 99999-8888"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="mt-1 min-h-11 w-full border-2 border-primary-light px-3 py-2 text-base"
+          className="field mt-1"
         />
       </div>
 
@@ -86,7 +86,7 @@ export function BuyCards({
             type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             aria-label="Diminuir quantidade"
-            className="flex h-11 w-11 items-center justify-center border-2 border-primary-light text-2xl font-bold text-primary"
+            className="btn btn-secondary !min-w-11 !px-0 text-2xl font-bold"
           >
             −
           </button>
@@ -95,7 +95,7 @@ export function BuyCards({
             type="button"
             onClick={() => setQuantity((q) => Math.min(MAX_QUANTITY, q + 1))}
             aria-label="Aumentar quantidade"
-            className="flex h-11 w-11 items-center justify-center border-2 border-primary-light text-2xl font-bold text-primary"
+            className="btn btn-secondary !min-w-11 !px-0 text-2xl font-bold"
           >
             +
           </button>
@@ -104,12 +104,12 @@ export function BuyCards({
 
       {total != null && <p className="text-lg font-semibold text-primary">Total: {formatCurrency(total)}</p>}
 
-      {error && <p className="text-base font-semibold text-red-700">{error}</p>}
+      {error && <p className="text-body font-semibold text-danger">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="min-h-11 bg-accent px-6 py-3 text-lg font-semibold text-primary disabled:opacity-60"
+        className="btn btn-confirm px-6 py-3 text-lg"
       >
         {loading ? "Enviando..." : "Comprar pelo WhatsApp"}
       </button>

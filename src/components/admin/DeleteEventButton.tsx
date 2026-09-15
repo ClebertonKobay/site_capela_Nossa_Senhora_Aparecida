@@ -17,7 +17,7 @@ export function DeleteEventButton({
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <button type="submit" className="text-base font-semibold text-red-700 underline">
+      <button type="submit" className="btn btn-delete">
         Excluir
       </button>
     </form>

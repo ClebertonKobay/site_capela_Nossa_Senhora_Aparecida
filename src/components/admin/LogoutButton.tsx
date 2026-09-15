@@ -10,7 +10,7 @@ export function LogoutButton() {
     <button
       type="button"
       onClick={handleLogout}
-      className="min-h-11 border-2 border-white px-3 py-1 text-sm font-semibold text-white"
+      className="btn !min-h-9 border-2 border-white/40 !bg-transparent px-3 py-1 text-sm font-semibold text-white hover:border-accent hover:!text-accent"
     >
       Sair
     </button>

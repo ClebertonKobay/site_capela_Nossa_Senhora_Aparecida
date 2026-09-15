@@ -1,5 +1,5 @@
 import { CHAPEL_ADDRESS, FACEBOOK_LINK, INSTAGRAM_LINK, MAPS_LINK } from "@/lib/location";
-import { FacebookIcon, InstagramIcon } from "@/components/social-icons";
+import { FacebookIcon, InstagramIcon } from "@/components/icons";
 
 export function Footer() {
   return (

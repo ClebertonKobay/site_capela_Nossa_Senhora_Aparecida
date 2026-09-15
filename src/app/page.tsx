@@ -2,7 +2,7 @@ import { and, asc, gte, isNotNull, or } from "drizzle-orm";
 import Image from "next/image";
 import Link from "next/link";
 
-import capelaPhoto from "@/assets/capela.png";
+import capelaPhoto from "@/assets/capela.jpg";
 import catequistasPhoto from "@/assets/catequistas.jpeg";
 import grupoDeJovensPhoto from "@/assets/grupo_de_jovens_2.jpg";
 import grupoDeOracaoPhoto from "@/assets/grupo_de_oracao.jpg";
@@ -10,10 +10,9 @@ import santaMissaPhoto from "@/assets/santa_missa.jpg";
 import { db } from "@/db";
 import { events } from "@/db/schema";
 import { ArchDivider } from "@/components/ArchDivider";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { ACTIVITY_ICONS } from "@/components/icons";
 import { MinistrySection } from "@/components/MinistrySection";
+import { PageShell } from "@/components/PageShell";
 import { ScheduleScrollIndicator } from "@/components/ScheduleScrollIndicator";
 import {
   formatCurrency,
@@ -37,7 +36,7 @@ import {
   isPatronessFeastWindow,
 } from "@/lib/schedules";
 
-const YOUTH_GROUP_SCHEDULE_LABEL = "2º sábado do mês (horário a confirmar)";
+const YOUTH_GROUP_SCHEDULE_LABEL = "2º sábado do mês · 18h";
 
 const ABOUT_TEXT =
   "A Capela Nossa Senhora Aparecida é um espaço de fé, acolhida e comunidade no bairro Boa Vista, em Ponta Grossa. Aqui celebramos a Santa Missa, rezamos juntos e cuidamos da formação de crianças, jovens e adultos na caminhada da fé — sempre sob o olhar de Nossa Senhora Aparecida, padroeira do Brasil.";
@@ -80,20 +79,12 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-sky">
-      <div className="mx-2 my-2 flex flex-col bg-background shadow-xl sm:mx-4 sm:my-4 sm:rounded-t-3xl lg:mx-auto lg:w-[90%]">
-        <Header />
-        <main className="flex-1">
-          {isPatronessFeastWindow() && (
-            <div className="mx-3 mt-3 rounded-2xl bg-primary px-4 py-3 text-center text-white shadow-lg">
-              <p className="text-sm font-semibold uppercase tracking-wide text-accent">12 de outubro</p>
-              <p className="text-base font-semibold">Dia de Nossa Senhora Aparecida, padroeira do Brasil</p>
-            </div>
-          )}
-
+    <>
+      <PageShell
+        hero={
           <section
             id="inicio"
-            className="photo-vignette relative aspect-[4/3] w-full overflow-hidden sm:rounded-t-3xl"
+            className="photo-vignette relative col-start-1 row-start-1 aspect-[4/3] w-full overflow-hidden sm:rounded-t-3xl"
           >
             <Image
               src={capelaPhoto}
@@ -104,20 +95,31 @@ export default async function HomePage() {
               className="object-cover"
             />
           </section>
+        }
+      >
+          {isPatronessFeastWindow() && (
+            <div className="mx-3 mt-3 rounded-2xl bg-primary px-4 py-3 text-center text-white shadow-lg">
+              <p className="text-sm font-semibold uppercase tracking-wide text-accent">12 de outubro</p>
+              <p className="text-base font-semibold">Dia de Nossa Senhora Aparecida, padroeira do Brasil</p>
+            </div>
+          )}
 
           <div className="px-4 pt-8 pb-10 text-center">
-            <h1 className="text-2xl font-bold text-primary sm:text-3xl">Capela Nossa Senhora Aparecida</h1>
+            <h1 className="text-display text-primary sm:text-5xl">Capela Nossa Senhora Aparecida</h1>
             <p className="mt-1 text-base text-foreground/70">Boa Vista, Ponta Grossa - PR</p>
           </div>
 
           {nextMass && (
-            <section className="relative z-10 mx-3 -mt-6 rounded-3xl bg-accent px-5 py-6 text-primary shadow-xl sm:-mt-8">
-              <p className="text-sm font-semibold uppercase tracking-wide">Próxima Missa</p>
-              <p className="mt-1 text-3xl font-bold sm:text-4xl">
+            <section className="relative z-10 mx-3 -mt-6 rounded-3xl bg-accent px-5 py-6 text-primary shadow-card sm:-mt-8">
+              <p className="text-caption font-semibold uppercase tracking-widest text-primary/70">Próxima Missa</p>
+              <p className="mt-2 text-display leading-tight sm:text-5xl">
                 {WEEKDAY_LABELS[nextMass.weekday]}, {formatShortDate(nextMass.date)} às {formatTime(nextMass.time)}
               </p>
-              <p className="mt-1 text-lg">Celebrante: {nextMass.celebrant ?? "A definir"}</p>
-              {nextMass.note && <p className="mt-1 text-base">{nextMass.note}</p>}
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-primary/15 pt-3 text-body">
+                <span className="font-semibold">Celebrante:</span>
+                <span>{nextMass.celebrant ?? "A definir"}</span>
+              </div>
+              {nextMass.note && <p className="mt-2 text-caption italic text-primary/80">{nextMass.note}</p>}
             </section>
           )}
 
@@ -172,7 +174,7 @@ export default async function HomePage() {
           <ArchDivider className="mt-4" />
 
           <section className="px-4 py-6">
-            <h2 className="text-xl font-bold text-primary">Horários da semana</h2>
+            <h2 className="text-title text-primary">Horários da semana</h2>
             <div className="mt-4 flex flex-col gap-3">
               {week.map((day) => (
                 <div key={day.date} className="border-l-4 border-primary-light pl-3">
@@ -203,18 +205,18 @@ export default async function HomePage() {
             </div>
           </section>
 
-          <section id="eventos" className="scroll-mt-24 bg-primary/5 px-4 py-6">
-            <h2 className="text-xl font-bold text-primary">Próximos eventos</h2>
+          <section id="eventos" className="scroll-mt-24 bg-surface-muted px-4 py-6">
+            <h2 className="text-title text-primary">Próximos eventos</h2>
             {upcomingEvents.length === 0 ? (
               <p className="mt-2 text-base text-foreground/60">Nenhum evento programado no momento.</p>
             ) : (
               <ul className="mt-4 flex flex-col gap-3">
                 {upcomingEvents.map((event) => (
-                  <li key={event.id}>
-                    <Link
-                      href={`/events/${event.id}`}
-                      className="block border-2 border-primary-light bg-background px-4 py-3"
-                    >
+                  <li
+                    key={event.id}
+                    className="hover-lift flex flex-col gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-card sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <Link href={`/events/${event.id}`} className="block rounded-xl">
                       <p className="font-semibold text-primary">
                         {event.featured && <span className="mr-1 text-accent">★</span>}
                         {event.name}
@@ -224,6 +226,15 @@ export default async function HomePage() {
                         <p className="text-sm text-foreground/70">Cartela: {formatCurrency(event.cardPrice)}</p>
                       )}
                     </Link>
+
+                    {event.sellsCards && event.cardPrice != null && (
+                      <Link
+                        href={`/events/${event.id}`}
+                        className="btn btn-confirm shrink-0 self-start sm:self-center"
+                      >
+                        Comprar cartela
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -231,7 +242,7 @@ export default async function HomePage() {
           </section>
 
           <section id="como-chegar" className="scroll-mt-24 px-4 py-8">
-            <h2 className="text-xl font-bold text-primary">Como chegar</h2>
+            <h2 className="text-title text-primary">Como chegar</h2>
             <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-center">
               <div className="md:w-1/2">
                 <p className="text-base">{CHAPEL_ADDRESS}</p>
@@ -244,7 +255,7 @@ export default async function HomePage() {
                   Abrir no Google Maps
                 </a>
               </div>
-              <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-lg md:w-1/2">
+              <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-card md:w-1/2">
                 <iframe
                   src={MAPS_EMBED_SRC}
                   title="Mapa com a localização da Capela Nossa Senhora Aparecida"
@@ -254,10 +265,8 @@ export default async function HomePage() {
               </div>
             </div>
           </section>
-        </main>
-        <Footer />
-      </div>
+      </PageShell>
       <ScheduleScrollIndicator sections={scrollIndicatorSections} />
-    </div>
+    </>
   );
 }

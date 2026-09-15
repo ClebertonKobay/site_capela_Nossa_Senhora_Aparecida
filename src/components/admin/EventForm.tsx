@@ -18,7 +18,7 @@ export type EventFormValues = {
   featured?: boolean;
 };
 
-const inputClass = "mt-1 min-h-11 w-full border-2 border-primary-light px-3 py-2 text-base";
+const inputClass = "field mt-1";
 const labelClass = "block text-base font-semibold text-primary";
 
 function phoneHint(normalized: string): string {
@@ -165,7 +165,7 @@ export function EventForm({
             href={whatsappLink(normalizedPhone, previewMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block min-h-11 bg-accent px-4 py-2 text-base font-semibold text-primary"
+            className="btn btn-confirm"
           >
             Testar no WhatsApp
           </a>
@@ -173,7 +173,7 @@ export function EventForm({
           <button
             type="button"
             disabled
-            className="min-h-11 cursor-not-allowed bg-foreground/20 px-4 py-2 text-base font-semibold text-foreground/50"
+            className="btn btn-confirm"
           >
             Testar no WhatsApp
           </button>
@@ -182,7 +182,7 @@ export function EventForm({
         <p className="mt-2 text-sm text-foreground/70 italic">&quot;{previewMessage}&quot;</p>
       </div>
 
-      <button type="submit" className="min-h-11 bg-primary px-4 py-3 text-lg font-semibold text-white">
+      <button type="submit" className="btn btn-confirm px-4 py-3 text-lg">
         Salvar
       </button>
     </form>

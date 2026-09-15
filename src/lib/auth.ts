@@ -4,11 +4,13 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
   signSessionToken,
-  verifySessionToken,
+  getSessionPayload,
+  type SessionPayload,
+  type UserRole,
 } from "./session-token";
 
-export async function createSession() {
-  const token = await signSessionToken();
+export async function createSession(payload: SessionPayload) {
+  const token = await signSessionToken(payload);
   (await cookies()).set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: true,
@@ -22,17 +24,18 @@ export async function destroySession() {
   (await cookies()).delete(SESSION_COOKIE_NAME);
 }
 
-export async function readSession(): Promise<boolean> {
+export async function getSession(): Promise<SessionPayload | null> {
   const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
-  if (!token) return false;
-  return verifySessionToken(token);
+  if (!token) return null;
+  return getSessionPayload(token);
 }
 
 // Chamar na primeira linha de toda Route Handler / Server Action administrativa.
 // O middleware protege a navegação, mas não as chamadas diretas à API.
-export async function requireAdmin() {
-  const authenticated = await readSession();
-  if (!authenticated) {
+export async function requireRole(allowed: UserRole[]): Promise<SessionPayload> {
+  const session = await getSession();
+  if (!session || !allowed.includes(session.role)) {
     throw new Response("Não autorizado", { status: 401 });
   }
+  return session;
 }

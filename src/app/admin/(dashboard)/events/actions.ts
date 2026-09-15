@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { events } from "@/db/schema";
-import { requireAdmin } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { parseCurrencyToCents, parseSaoPauloDateTime } from "@/lib/format";
 import { isValidPhone, normalizePhone } from "@/lib/phone";
 
@@ -49,7 +49,7 @@ function parseEventForm(formData: FormData) {
 }
 
 export async function createEvent(formData: FormData) {
-  await requireAdmin();
+  await requireRole(["admin", "chapel_coordinator"]);
   const data = parseEventForm(formData);
 
   await db.insert(events).values(data);
@@ -60,7 +60,7 @@ export async function createEvent(formData: FormData) {
 }
 
 export async function updateEvent(formData: FormData) {
-  await requireAdmin();
+  await requireRole(["admin", "chapel_coordinator"]);
 
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id)) throw new Error("id inválido");
@@ -76,7 +76,7 @@ export async function updateEvent(formData: FormData) {
 }
 
 export async function deleteEvent(formData: FormData) {
-  await requireAdmin();
+  await requireRole(["admin", "chapel_coordinator"]);
 
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id)) throw new Error("id inválido");

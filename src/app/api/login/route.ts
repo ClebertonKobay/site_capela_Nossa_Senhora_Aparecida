@@ -1,16 +1,20 @@
 import { verify } from "@node-rs/argon2";
+import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { createSession } from "@/lib/auth";
 import { tooManyAttempts } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
+  username: z.string().trim().min(1),
   password: z.string().min(1),
 });
 
 function genericError() {
-  return NextResponse.json({ error: "Senha incorreta." }, { status: 401 });
+  return NextResponse.json({ error: "Usuário ou senha incorretos." }, { status: 401 });
 }
 
 export async function POST(request: NextRequest) {
@@ -26,17 +30,21 @@ export async function POST(request: NextRequest) {
     return genericError();
   }
 
-  const hashBase64 = process.env.ADMIN_PASSWORD_HASH_BASE64;
-  if (!hashBase64) {
-    throw new Error("ADMIN_PASSWORD_HASH_BASE64 não configurado");
-  }
-  const hash = Buffer.from(hashBase64, "base64").toString("utf8");
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.username, parsed.data.username))
+    .limit(1);
 
-  const valid = await verify(hash, parsed.data.password);
+  if (!user || !user.active) {
+    return genericError();
+  }
+
+  const valid = await verify(user.passwordHash, parsed.data.password);
   if (!valid) {
     return genericError();
   }
 
-  await createSession();
+  await createSession({ userId: user.id, role: user.role });
   return NextResponse.json({ ok: true });
 }

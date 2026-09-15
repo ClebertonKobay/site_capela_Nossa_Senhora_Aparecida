@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { db } from "@/db";
 import { celebrations, fixedSchedules } from "@/db/schema";
-import { requireAdmin } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
 import { WEEKDAY_LABELS, addDays, dateOnlyUTC, toISODate, todayInSaoPaulo } from "@/lib/schedules";
 
@@ -45,7 +45,7 @@ async function getMonthMassSlots(): Promise<Slot[]> {
 
 async function saveCelebrants(formData: FormData) {
   "use server";
-  await requireAdmin();
+  await requireRole(["admin", "chapel_coordinator"]);
 
   const slotsRaw = formData.get("slots");
   if (typeof slotsRaw !== "string") return;
@@ -122,7 +122,7 @@ export default async function CelebrantsPage({
       )}
 
       {slots.length === 0 ? (
-        <p className="mt-4 text-base text-foreground/60">Nenhuma missa fixa cadastrada.</p>
+        <p className="mt-4 text-base text-foreground/70">Nenhuma missa fixa cadastrada.</p>
       ) : (
         <form action={saveCelebrants} className="mt-4">
           <input type="hidden" name="slots" value={JSON.stringify(slots.map(({ date, time }) => ({ date, time })))} />

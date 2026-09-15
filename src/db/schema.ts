@@ -76,3 +76,21 @@ export const cardOrders = pgTable("card_orders", {
     .notNull()
     .defaultNow(),
 });
+
+export const userRole = pgEnum("user_role", [
+  "admin",
+  "chapel_coordinator",
+  "pastoral_coordinator",
+  "catechesis_coordinator",
+  "catechist",
+]);
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  name: text("name").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  role: userRole("role").notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

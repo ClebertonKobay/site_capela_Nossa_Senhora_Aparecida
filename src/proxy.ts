@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session-token";
+import { SESSION_COOKIE_NAME, getSessionPayload } from "@/lib/session-token";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,7 +11,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  if (token && (await verifySessionToken(token))) {
+  if (token && (await getSessionPayload(token))) {
     return NextResponse.next();
   }
 

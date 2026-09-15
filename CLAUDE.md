@@ -28,11 +28,23 @@ Este é um site público com área administrativa. Se houver dúvida entre conve
 
 ### Autenticação
 
-- Senha única de admin, guardada como hash Argon2id em env var. Nunca a senha em texto puro, nunca no client.
+- Conta individual por pessoa, tabela `users` no Postgres (`id`, `username`, `name`, `password_hash`, `role`, `active`, `created_at`). Nada de senha única de admin em env var — cada usuário tem seu próprio hash Argon2id (`@node-rs/argon2`). Nunca a senha em texto puro, nunca no client.
+- Login por **nome de usuário**, não e-mail — coordenadores e catequistas costumam ser leigos, sem hábito de checar e-mail.
 - Comparação de senha só em Route Handler / Server Action. Nenhuma lógica de auth em componente client.
-- Sessão: JWT assinado com `jose` (HS256, segredo de 32+ bytes) em cookie `httpOnly`, `secure`, `sameSite: "lax"`, `maxAge` 30 dias.
-- **O `proxy.ts` (era `middleware.ts` antes do Next.js 16) não é suficiente.** Ele protege a navegação, mas toda Route Handler e Server Action que lê ou escreve dado administrativo precisa chamar `requireAdmin()` por conta própria, na primeira linha. Esse é o furo mais comum: proteger `/admin` e deixar `POST /api/events` aberto para qualquer um com `curl`.
-- Rate limit no login: máximo 5 tentativas por IP a cada 15 minutos. Resposta genérica em erro ("senha incorreta"), sem revelar detalhe.
+- Sessão: JWT assinado com `jose` (HS256, segredo de 32+ bytes) em cookie `httpOnly`, `secure`, `sameSite: "lax"`, `maxAge` 30 dias. Payload carrega `{ userId, role }`.
+- **O `proxy.ts` (era `middleware.ts` antes do Next.js 16) não é suficiente.** Ele protege a navegação, mas toda Route Handler e Server Action que lê ou escreve dado administrativo precisa chamar `requireRole(allowed: UserRole[])` por conta própria, na primeira linha, passando os papéis permitidos naquela ação. Esse é o furo mais comum: proteger `/admin` e deixar `POST /api/events` aberto para qualquer um com `curl`.
+- Rate limit no login: máximo 5 tentativas por IP a cada 15 minutos. Resposta genérica em erro ("Usuário ou senha incorretos."), sem revelar qual campo errou.
+- O primeiro usuário `admin` é criado uma vez, manualmente, pelo script `scripts/create-admin-user.mjs` — não existe cadastro público de admin.
+
+Papéis (enum `user_role`, valores em inglês por convenção — rótulo de UI em português):
+
+| Role (enum) | Rótulo em português | Acesso |
+|---|---|---|
+| `admin` | Administrador | Tudo, incluindo gerenciar outros usuários (único papel que cria/desativa contas). |
+| `chapel_coordinator` | Coordenador de Capela | Conteúdo da capela — celebrantes, eventos, pedidos. Hoje quase igual a `admin` (só existe uma capela), mas separado pensando num futuro projeto multi-capela. |
+| `pastoral_coordinator` | Coordenador de Pastoral | Cadastra pessoas só na própria pastoral. |
+| `catechesis_coordinator` | Coordenador de Catequese | Cadastra catequistas, turmas, catequizandos e horários. |
+| `catechist` | Catequista | Vê só as próprias turmas; marca presença/falta. |
 
 ### Entrada de dados
 

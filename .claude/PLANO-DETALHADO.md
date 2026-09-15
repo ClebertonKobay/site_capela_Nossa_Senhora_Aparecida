@@ -40,6 +40,18 @@ Para acrescentar fases aqui, ver `/criar-plano`.
 | TR3.6 | Tela `/admin/my-classes` (catequista) | sonnet | [x] |
 | TR4.1 | Navegação do admin por papel | sonnet | [x] |
 | TR4.2 | Auditoria final de `requireRole` | não delegar | [x] |
+| TUI.1 | Instalar dependências da fase e utilitário `cn()` | sonnet | [x] |
+| TUI.2 | `Typography` | haiku | [x] |
+| TUI.3 | `Button` e `IconButton` | haiku | [x] |
+| TUI.4 | `Input` | haiku | [x] |
+| TUI.5 | `Checkbox` (Radix) | sonnet | [x] |
+| TUI.6 | `Select` (Radix) | sonnet | [x] |
+| TUI.7 | `Popover` (Radix) | sonnet | [x] |
+| TUI.8 | `DatePicker` (react-day-picker) | sonnet | [x] |
+| TUI.9 | `Table` (primitivos) | haiku | [x] |
+| TUI.10 | `DataTable` (TanStack Table) | sonnet | [x] |
+| TUI.11 | Barrel export (`src/components/ui/index.ts`) | haiku | [x] |
+| TUI.12 | Documentar no CLAUDE.md | haiku | [x] |
 
 `⚠` = precisa de uma ação do Cleberton antes de rodar (não é decisão — é ele digitar a própria senha).
 
@@ -560,6 +572,307 @@ vazias. Nenhum achado.
 
 ---
 
+## Fase UI — Biblioteca de componentes (adapter sobre Radix UI)
+
+Hoje cada tela monta seu próprio botão, input, checkbox e select colando classes Tailwind na mão —
+o sistema de tokens existe (`globals.css`, seção "Sistema de UI" desde a Fase D: `btn`,
+`btn-confirm`/`btn-delete`/`btn-secondary`/`btn-icon`, `field`, `text-display`…`text-caption`), mas
+nada disso está encapsulado em componente React reutilizável. É por isso que apesar da paleta ser
+uma só, cada tela do admin "sente" um pouco diferente — um checkbox usa `h-5 w-5` solto
+(`celebrants/page.tsx:157`), outro também (`EventForm.tsx:152`), sem nenhum componente em comum, e
+nenhum dos dois é acessível por teclado além do que o `<input>` nativo já dá de graça.
+
+O pedido do Cleberton: criar `src/components/ui/`, uma pasta de componentes agrupando o que várias
+telas vão usar, com `Button` (variantes `default`/`cancel`/`secondary`), `IconButton`, `Select`,
+`Checkbox`, `Popover`, `Input`, `DatePicker`, `Table`/`DataTable` e `Typography` — usando **Radix
+UI** como base para os primitivos que precisam de acessibilidade composta de verdade (`Select`,
+`Checkbox`, `Popover` são compostos de várias partes com navegação por teclado, foco preso, ARIA
+correto — reescrever isso do zero é caro e propenso a erro). Radix não tem primitivo de calendário
+nem de tabela — para esses dois, decisão tomada nesta sessão com o Cleberton: **com biblioteca**.
+`DatePicker` usa `react-day-picker` (calendário visual) dentro do `Popover` desta mesma biblioteca
+(mesmo padrão que o shadcn/ui usa, com `date-fns/locale/pt-BR` para os meses/dias saírem em
+português — regra do `CLAUDE.md` de texto de UI em português). `DataTable` usa `@tanstack/react-table`
+(headless — só a lógica de ordenação/paginação, o HTML/estilo continua sendo os componentes `Table`
+desta mesma fase).
+
+**Dependências já aprovadas pelo Cleberton nesta sessão** (pediu explicitamente "pode instalar e
+usar" no `/criar-plano`, e depois confirmou "DatePicker e DataTable com lib nova" quando perguntado):
+o pacote unificado `radix-ui`, `react-day-picker`, `date-fns` (só para o locale `pt-BR` do calendário)
+e `@tanstack/react-table`. Nenhuma dessas quatro tarefas de instalação precisa de confirmação extra —
+a aprovação já está registrada aqui.
+
+Esta fase só **cria** a biblioteca. Migrar as telas existentes (`EventForm.tsx`, `celebrants/page.tsx`,
+`orders/page.tsx`, os `<select>` de `users/page.tsx`/`catechesis/page.tsx` etc.) para usar os
+componentes novos é decisão em aberto, registrada no fim deste arquivo — misturar "criar a
+biblioteca" com "trocar 15 arquivos pra usar ela" no mesmo plano deixaria o `git diff` irrevisável,
+e é exatamente o tipo de mistura que este processo de plano existe para evitar.
+
+### TUI.1 — Instalar as dependências da fase e o utilitário de classes
+
+- **Arquivos**: edita `package.json` (e `package-lock.json`, gerado); cria `src/lib/cn.ts`
+- **Modelo**: sonnet
+- **Depende de**: —
+- **Fazer**:
+  1. `npm install radix-ui react-day-picker date-fns @tanstack/react-table` — quatro pacotes:
+     - `radix-ui`: pacote único que reexporta todos os primitivos (`Select`, `Checkbox`, `Popover`
+       etc.), não os pacotes antigos `@radix-ui/react-select` e afins.
+     - `react-day-picker`: o calendário do `DatePicker` (TUI.8).
+     - `date-fns`: só usado pelo locale `pt-BR` do `react-day-picker` (`date-fns/locale/pt-BR`) —
+       confira a versão que o `react-day-picker` instalado espera como peer dependency antes de
+       fixar a versão do `date-fns` (`npm ls react-day-picker` depois de instalar mostra isso).
+     - `@tanstack/react-table`: a lógica headless (sem estilo) de ordenação/paginação do
+       `DataTable` (TUI.10).
+  2. Criar `src/lib/cn.ts`:
+     ```ts
+     export function cn(...classes: Array<string | false | null | undefined>): string {
+       return classes.filter(Boolean).join(" ");
+     }
+     ```
+     Helper mínimo pra combinar classes condicionais nos componentes desta fase — sem instalar
+     `clsx`/`tailwind-merge`, mantém o projeto leve nesse ponto específico.
+- **Aceite**: `npm run build` passa; `package.json` lista as quatro dependências novas.
+- **Não fazer**: não instalar `@radix-ui/react-*` avulsos (só o pacote unificado). Não instalar
+  `clsx` nem `tailwind-merge`.
+
+### TUI.2 — `Typography`
+
+- **Arquivos**: cria `src/components/ui/Typography.tsx`
+- **Modelo**: haiku
+- **Depende de**: TUI.1
+- **Fazer**: componente `Typography({ as, variant, className, children, ...props })`.
+  `variant: "display" | "title" | "subtitle" | "body" | "caption"` mapeia direto para as classes já
+  existentes em `globals.css` (`text-display`, `text-title`, `text-subtitle`, `text-body`,
+  `text-caption` — **sem cor embutida**, exatamente como o `CLAUDE.md` já documenta pra essas
+  utilities; cor continua vindo do `className` de quem usa, ex. `text-primary`). `as` escolhe a tag
+  renderizada; sem `as` explícito, cada `variant` tem uma tag default sensata: `display` → `h1`,
+  `title` → `h2`, `subtitle` → `h3`, `body` → `p`, `caption` → `span`. Usa `cn()` de `@/lib/cn` pra
+  combinar a classe do `variant` com o `className` recebido.
+- **Aceite**: `npm run build`; `<Typography variant="title" className="text-primary">Teste</Typography>`
+  renderiza `<h2 class="text-title text-primary">Teste</h2>`.
+- **Não fazer**: não adicionar cor default nem tamanho fora das 5 variantes que já existem em
+  `globals.css` — não é desta tarefa inventar escala tipográfica nova.
+
+### TUI.3 — `Button` e `IconButton`
+
+- **Arquivos**: cria `src/components/ui/Button.tsx`, `src/components/ui/IconButton.tsx`
+- **Modelo**: haiku
+- **Depende de**: TUI.1
+- **Fazer**:
+  1. `Button({ variant, className, type, ...props }: { variant?: "default" | "cancel" | "secondary"
+     } & ComponentPropsWithoutRef<"button">)` — `variant` (default: `"default"`) mapeia pra
+     `btn btn-confirm` (`default`), `btn btn-delete` (`cancel`), `btn btn-secondary` (`secondary`) —
+     as classes já existem em `globals.css`, esta tarefa só as encapsula. `type` continua vindo de
+     quem usa (sem forçar default — `EventForm.tsx:185` já usa `type="submit"` no botão de salvar
+     dentro de um `<form action={...}>`, e isso precisa continuar funcionando por quem migrar depois).
+     Repassa o resto das props nativas via spread, `className` extra combinado com `cn()`.
+  2. `IconButton({ "aria-label": ariaLabel, className, children, ...props })` — usa a classe
+     `btn-icon` já existente; `aria-label` é **obrigatório** no tipo (ícone sem texto precisa de
+     rótulo acessível — TypeScript deve recusar compilar sem ele).
+- **Aceite**: `npm run build`; `<Button variant="cancel">Excluir</Button>` renderiza com a classe
+  `btn btn-delete`; tentar usar `<IconButton>` sem `aria-label` dá erro de tipo.
+- **Não fazer**: não recriar as classes CSS de botão — só mapear pras que já existem. Não tocar em
+  `DeleteEventButton.tsx` nem em nenhum outro botão já existente no projeto.
+
+### TUI.4 — `Input`
+
+- **Arquivos**: cria `src/components/ui/Input.tsx`
+- **Modelo**: haiku
+- **Depende de**: TUI.1
+- **Fazer**: wrapper de `<input>` nativo com a classe `field` já existente. Props: `label?: string`
+  (renderiza um `<label>` associado via `useId()` do React quando não vier `id` explícito nas
+  props), `error?: string` (mostra abaixo do campo, mesmo padrão visual de erro já usado em
+  `BuyCards.tsx`/`EventForm.tsx`: `text-caption text-danger`). Repassa o resto das props nativas de
+  `<input>` via spread; `className` extra combinado com `cn()`.
+- **Aceite**: `npm run build`; `<Input label="Nome" />` renderiza `<label>` + `<input class="field">`
+  com os `id`/`htmlFor` ligados.
+- **Não fazer**: não implementar máscara de telefone ou de moeda aqui — isso continua em
+  `@/lib/phone`/`@/lib/format`, aplicado por quem chama o `Input`, não dentro dele.
+
+### TUI.5 — `Checkbox` (Radix)
+
+- **Arquivos**: cria `src/components/ui/Checkbox.tsx`
+- **Modelo**: sonnet
+- **Depende de**: TUI.1
+- **Contexto**: primeiro componente desta fase que usa um primitivo Radix de verdade — vale o
+  cuidado extra de conferir a acessibilidade (é exatamente o motivo de usar Radix em vez de um
+  `<input type="checkbox">` estilizado na mão).
+- **Fazer**: adapter sobre o `Checkbox` exportado pelo pacote `radix-ui` (confira o caminho de
+  import certo pela versão instalada na TUI.1 — normalmente `import { Checkbox as RadixCheckbox }
+  from "radix-ui"`, mas confirme nos tipos/documentação do pacote instalado antes de assumir).
+  Props: `label?: string`, `checked`, `onCheckedChange`, `name`, `disabled` — repassadas pro
+  primitivo Radix (`Root` + `Indicator`). Estiliza o `Root` com borda `border-2 border-primary-light`
+  e cantos arredondados, o estado marcado com fundo `bg-primary` e o ícone de check (pode usar um
+  SVG simples inline no próprio arquivo, `viewBox 0 0 24 24`, `stroke="currentColor"`, mesmo padrão
+  dos ícones em `src/components/icons/`) em branco por cima. O wrapper (label + caixa) precisa de
+  `min-h-11` pro alvo de toque mínimo do `CLAUDE.md`.
+- **Aceite**: `npm run build`; o checkbox alterna por teclado (Tab pra focar, Espaço pra marcar) e
+  mostra o outline dourado de `:focus-visible` já global em `globals.css:92-95` (conferir que o
+  Radix não sobrescreve isso com outline próprio — se sobrescrever, remover o outline do Radix pra
+  deixar o global aparecer).
+- **Não fazer**: não trocar os `<input type="checkbox">` já existentes em `celebrants/page.tsx:153`
+  ou `EventForm.tsx:148,158` por este componente — migração de tela é decisão em aberto, fora desta
+  fase.
+
+### TUI.6 — `Select` (Radix)
+
+- **Arquivos**: cria `src/components/ui/Select.tsx`
+- **Modelo**: sonnet
+- **Depende de**: TUI.1
+- **Contexto**: os `<select>` nativos hoje (`users/page.tsx`, `catechesis/page.tsx`,
+  `my-classes/page.tsx`) vivem dentro de `<form action={ServerAction}>` e dependem do atributo
+  `name` nativo pra chegar no `FormData` do lado do servidor. O `Select` do Radix **não é** um
+  `<select>` nativo — não tem `name`/`value` de formulário HTML sozinho. Pra este componente
+  continuar utilizável dentro de Server Actions no futuro (quando/se alguma tela migrar), inclua um
+  `<input type="hidden" name={name} value={value ?? ""} />` interno quando a prop `name` for
+  passada — é a mesma técnica que o próprio Radix documenta pra uso em formulários nativos.
+- **Fazer**: adapter sobre `Select` do pacote `radix-ui` (`Root`, `Trigger`, `Value`, `Portal`,
+  `Content`, `Viewport`, `Item`, `ItemText`, `ItemIndicator` — confira os nomes exatos exportados
+  pela versão instalada). Props: `label?`, `value`, `onValueChange`, `name?`, `options: { value:
+  string; label: string }[]`, `placeholder?`. O ícone da seta do `Trigger` pode ser um SVG simples
+  inline no próprio arquivo (não precisa criar arquivo novo em `src/components/icons/` pra isso).
+  Estiliza o `Trigger` com a classe `field` (mesmo campo visual dos outros inputs), o `Content` com
+  `bg-surface shadow-lifted rounded-xl border border-border`, o `Item` selecionado com
+  `bg-primary-light/15`.
+- **Aceite**: `npm run build`; navega pelas opções com as setas do teclado, seleciona com Enter,
+  fecha com Escape; o `focus-visible` do `Trigger` mostra o outline dourado padrão.
+- **Não fazer**: não trocar nenhum `<select>` nativo já existente no projeto por este componente —
+  migração de tela é decisão em aberto, fora desta fase.
+
+### TUI.7 — `Popover` (Radix)
+
+- **Arquivos**: cria `src/components/ui/Popover.tsx`
+- **Modelo**: sonnet
+- **Depende de**: TUI.1
+- **Fazer**: adapter fino sobre `Popover` do pacote `radix-ui` (`Root`, `Trigger`, `Portal`,
+  `Content`, `Arrow`). Props: `trigger: ReactNode`, `children` (conteúdo do popover), `align?`,
+  `side?` repassados direto pro `Content` do Radix. Estiliza `Content` com `bg-surface shadow-lifted
+  rounded-xl border border-border p-4`, `Arrow` com `fill-surface`.
+- **Aceite**: `npm run build`; abre ao clicar no trigger, fecha ao clicar fora ou apertar Escape,
+  foco visível no trigger.
+- **Não fazer**: não implementar lógica de posicionamento própria — usa a que o Radix já resolve.
+
+### TUI.8 — `DatePicker`
+
+- **Arquivos**: cria `src/components/ui/DatePicker.tsx`
+- **Modelo**: sonnet
+- **Depende de**: TUI.4 (padrão de `label`/`error`), TUI.7 (`Popover`)
+- **Contexto**: decisão tomada nesta sessão — com biblioteca. `react-day-picker` trabalha com
+  objeto `Date` nativo do JS, não com a string `"YYYY-MM-DDTHH:mm"` que `<input type="datetime-local">`
+  usa — e o projeto já resolve fuso horário em `@/lib/format` (`parseSaoPauloDateTime`,
+  `toSaoPauloDateTimeLocal`, usados em `EventForm.tsx:92,104` para início/fim de evento) em cima
+  dessa string. Este componente não reimplementa esse parsing: ele expõe `value`/`onChange` como
+  `Date | undefined`, e quem usar (ex. uma futura migração do `EventForm.tsx`) converte pra/da string
+  de fuso horário nas bordas, do mesmo jeito que já faz hoje com o input nativo.
+- **Fazer**:
+  1. Trigger: um `Button` (TUI.3, `variant="secondary"`) ou um campo no estilo `field` mostrando a
+     data formatada (`Intl.DateTimeFormat("pt-BR", { dateStyle: includeTime ? undefined : "short",
+     ... })` ou similar — formato `dd/mm/aaaa`) dentro do `Popover` (TUI.7) como `trigger`.
+  2. Conteúdo do popover: `<DayPicker mode="single" selected={value} onSelect={onChange} locale={ptBR}
+     />` (import `{ ptBR }` de `date-fns/locale`), estilizado com as classes de tema do
+     `react-day-picker` (`classNames` prop) usando os tokens do projeto — dia selecionado
+     `bg-primary text-white`, hoje com contorno `border border-accent`, hover
+     `bg-primary-light/15`.
+  3. `includeTime?: boolean` (default `false`): quando `true`, acrescenta um `<input type="time">`
+     (classe `field`) abaixo do calendário dentro do popover, combinando a hora escolhida com a data
+     do calendário num único `Date` antes de chamar `onChange`.
+  4. Props: `label?`, `error?` (mesmo contrato do `Input`, TUI.4), `value: Date | undefined`,
+     `onChange: (date: Date | undefined) => void`, `includeTime?`.
+- **Aceite**: `npm run build`; o calendário abre no clique do trigger, mostra nomes de mês/dia em
+  português (`locale={ptBR}`), fecha ao selecionar uma data (quando `includeTime` for `false`) ou ao
+  clicar fora, navega por teclado (setas, Enter, Escape — o próprio `react-day-picker` já dá isso).
+- **Não fazer**: não reimplementar nem importar `parseSaoPauloDateTime`/`toSaoPauloDateTimeLocal`
+  dentro deste componente — a conversão de/para a string de fuso horário do banco fica com quem usa.
+
+### TUI.9 — `Table` (primitivos de apresentação)
+
+- **Arquivos**: cria `src/components/ui/Table.tsx`
+- **Modelo**: haiku
+- **Depende de**: TUI.1
+- **Fazer**: componentes de apresentação pura, espelhando a estrutura que `orders/page.tsx:52-64`
+  já usa hoje: `Table` (`<table class="w-full min-w-[560px] border-collapse text-left text-base">`),
+  `TableHeader` (`<thead>`), `TableRow` (`<tr>` — no header usa `border-b-2 border-border`, no corpo
+  `border-b border-border`, então aceite uma prop `header?: boolean` pra escolher a borda certa),
+  `TableHead` (`<th class="py-2 pr-3">`), `TableBody` (`<tbody>`), `TableCell` (`<td class="py-2
+  pr-3">`). Cada um só repassa `className` (combinado com `cn()`) e `children` — sem ordenação,
+  paginação ou filtro embutido; essa lógica é da TUI.10 (`DataTable`), que usa estes componentes por
+  baixo pra renderizar.
+- **Aceite**: `npm run build`; compor `<Table><TableHeader><TableRow header>...</TableRow></TableHeader>
+  <TableBody>...</TableBody></Table>` reproduz visualmente a tabela de `orders/page.tsx`.
+- **Não fazer**: não adicionar lógica de ordenação/paginação/filtro aqui — isso é a TUI.10. Não
+  migrar `orders/page.tsx` para usar este componente — fica pra decisão futura (item 5 das "Decisões
+  em aberto").
+
+### TUI.10 — `DataTable` (TanStack Table)
+
+- **Arquivos**: cria `src/components/ui/DataTable.tsx`
+- **Modelo**: sonnet
+- **Depende de**: TUI.9
+- **Contexto**: decisão tomada nesta sessão — com biblioteca. `@tanstack/react-table` é headless
+  (só lógica: ordenação, paginação, seleção de linha — zero HTML/CSS próprio), então este componente
+  usa o hook `useReactTable` pra gerenciar o estado e renderiza o resultado com os componentes
+  `Table`/`TableHeader`/`TableRow`/`TableHead`/`TableBody`/`TableCell` da TUI.9, mantendo o mesmo
+  visual do resto do projeto.
+- **Fazer**:
+  1. `DataTable<TData, TValue>({ columns, data }: { columns: ColumnDef<TData, TValue>[]; data:
+     TData[] })` — genérico, tipado com `ColumnDef` do `@tanstack/react-table`.
+  2. `useReactTable({ data, columns, getCoreRowModel: getCoreRowModel(), getSortedRowModel:
+     getSortedRowModel(), getPaginationRowModel: getPaginationRowModel() })` — habilita ordenação e
+     paginação (estado interno do hook, sem prop extra pra controlar de fora nesta primeira versão).
+  3. Renderiza o header com `flexRender(header.column.columnDef.header, header.getContext())`
+     dentro de `TableHead`, com um botão/ícone de ordenar quando a coluna define `enableSorting`
+     (usar `IconButton`, TUI.3, com um SVG de seta simples inline — chama
+     `header.column.toggleSorting()` no clique).
+  4. Renderiza as linhas via `table.getRowModel().rows`, cada célula com
+     `flexRender(cell.column.columnDef.cell, cell.getContext())` dentro de `TableCell`.
+  5. Paginação simples no rodapé: dois `Button` (`variant="secondary"`) "Anterior"/"Próxima"
+     chamando `table.previousPage()`/`table.nextPage()`, desabilitados via
+     `table.getCanPreviousPage()`/`table.getCanNextPage()` — só aparece quando
+     `table.getPageCount() > 1`.
+  6. Quando `data.length === 0`, mostrar uma linha única "Nenhum registro encontrado." (`text-body
+     text-foreground/70`) em vez da tabela vazia — mesmo espírito das mensagens de lista vazia já
+     usadas em `orders/page.tsx`/`celebrants/page.tsx`.
+- **Aceite**: `npm run build`; com uma lista de dados de teste (>10 itens) e uma coluna com
+  `enableSorting: true`, clicar no cabeçalho ordena, e os botões de paginação navegam entre páginas.
+- **Não fazer**: não migrar `orders/page.tsx` para usar este componente — fica pra decisão futura
+  (item 5 das "Decisões em aberto"). Não implementar filtro de texto nem seleção de linha nesta
+  tarefa — só ordenação e paginação, que é o que foi pedido.
+
+**Nota da execução**: `npm install @tanstack/react-table` (sem versão fixada) puxou a v9, que é uma
+reescrita completa (API `useTable`/`createTableHook`, sem `useReactTable`/`getCoreRowModel`/
+`flexRender` no formato clássico) — incompatível com o resto do ecossistema/documentação, que ainda
+é todo v8. Corrigido fixando `@tanstack/react-table` em `^8` (`npm install @tanstack/react-table@^8`)
+— o componente já escrito na API v8 passou a compilar sem precisar reescrever nada.
+
+### TUI.11 — Barrel export
+
+- **Arquivos**: cria `src/components/ui/index.ts`
+- **Modelo**: haiku
+- **Depende de**: TUI.2, TUI.3, TUI.4, TUI.5, TUI.6, TUI.7, TUI.8, TUI.9, TUI.10
+- **Fazer**: reexportar tudo dos arquivos criados nesta fase, um `export * from "./NomeDoArquivo";`
+  por componente (`Typography`, `Button`, `IconButton`, `Input`, `Checkbox`, `Select`, `Popover`,
+  `DatePicker`, `Table`, `DataTable`).
+- **Aceite**: `npm run build`; `import { Button, Input, Select, DataTable } from "@/components/ui"`
+  resolve sem erro de tipo.
+- **Não fazer**: não reexportar `cn` de `@/lib/cn` por aqui — esse helper é de `@/lib`, não faz
+  parte da biblioteca de componentes de UI.
+
+### TUI.12 — Documentar no CLAUDE.md
+
+- **Arquivos**: `CLAUDE.md`
+- **Modelo**: haiku
+- **Depende de**: TUI.1 a TUI.11
+- **Fazer**: na seção "Sistema de UI" (dentro de "Design", já existe desde a Fase D), acrescentar um
+  parágrafo curto sobre `src/components/ui/`: pasta de componentes React reutilizáveis, adapter
+  sobre o pacote `radix-ui` para os primitivos compostos (`Select`, `Checkbox`, `Popover`);
+  `DatePicker` usa `react-day-picker` + `date-fns/locale/pt-BR`; `DataTable` usa
+  `@tanstack/react-table` (headless, estilo próprio via `Table`). Listar os 10 componentes com um
+  exemplo de import (`import { Button, Input, DataTable } from "@/components/ui";`).
+- **Aceite**: `CLAUDE.md` tem a seção nova, sem duplicar a tabela de paleta ou o restante do
+  "Sistema de UI" já existente.
+- **Não fazer**: não reescrever o resto do `CLAUDE.md`.
+
+---
+
 ## Decisões em aberto
 
 | # | Decisão | Bloqueia |
@@ -568,6 +881,8 @@ vazias. Nenhum achado.
 | 2 | Troca de senha pelo próprio usuário / "esqueci minha senha" | Não implementado nesta leva (TR1.7 nota isso) — hoje só o admin recria/reresetaria manualmente. Perguntar ao Cleberton se vale a pena numa fase futura. |
 | 3 | Relatório/histórico de faltas na catequese | Não implementado (TR3.6 só marca o dia). Perguntar se é necessário. |
 | 4 | Pendências do plano anterior (Fase 9 WebP, Fase 10 recorrência mensal, T11.1/T11.6/T11.7, Fase 12) | Continuam fora deste arquivo — ver nota no topo. |
+| 5 | Migrar as telas existentes (`EventForm.tsx`, `celebrants/page.tsx`, `orders/page.tsx`, os `<select>` de `users/page.tsx`/`catechesis/page.tsx`/`my-classes/page.tsx`) para os componentes de `src/components/ui/` | Fora do escopo da Fase UI de propósito — recomendo uma fase futura "Fase UI-migração", tela por tela, depois que a biblioteca estiver no ar e revisada. Misturar criação de componente com troca de 6+ telas no mesmo plano deixaria o `git diff` irrevisável. |
+| 6 | `Select` do Radix dentro de Server Action (`<form action={...}>`) | TUI.6 já resolve com um `<input type="hidden">` interno — só falta confirmar na prática, quando alguma tela migrar (item 5), que o valor chega certo no `FormData` do lado do servidor. |
 
 ---
 
@@ -585,6 +900,14 @@ Fase R3 →  TR3.1 (depende de TR1.1) → (TR3.2 ∥ TR3.3, arquivos diferentes)
 
 Fase R4 →  TR4.1 (depende de TR1.7, TR2.3, TR2.4, TR3.4, TR3.6 — ou seja, do resto quase todo)
            TR4.2 por último, auditoria com o Cleberton
+
+Fase UI →  TUI.1 sozinha primeiro (instala as 4 dependências)
+           (TUI.2 ∥ TUI.3 ∥ TUI.9) — arquivos diferentes, só dependem de TUI.1
+           (TUI.4 ∥ TUI.5 ∥ TUI.6 ∥ TUI.7) — arquivos diferentes, só dependem de TUI.1 (rodar em
+             no máximo 3 por vez, ver regra do /executar-plano)
+           TUI.8 (depende de TUI.4 e TUI.7) → TUI.10 (depende de TUI.9)
+           TUI.11 por último entre os componentes (depende de TUI.2 a TUI.10)
+           TUI.12 fecha a fase (depende de tudo)
 ```
 
 `∥` marca o que pode rodar em paralelo, porque não compartilha arquivo. R2 e R3 só dependem de R1

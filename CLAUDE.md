@@ -109,6 +109,7 @@ Definido em `src/app/globals.css` (Tailwind v4, `@utility`), aplicado no site in
 - **Botão**: sempre `btn` + uma variante — `btn-confirm` (ação primária/confirmação), `btn-delete` (excluir/cancelar), `btn-secondary` (ação secundária). `btn-icon` para SVG isolado (44×44px, hover muda só a cor).
 - **Campo de formulário**: `field` (input, select, textarea).
 - **Ícones**: `src/components/icons/` (`activity.tsx`, `social.tsx`) — SVG com `stroke="currentColor"`; a cor vem do `className` de texto de quem usa.
+- **Componentes React**: `src/components/ui/` — biblioteca de componentes reutilizáveis (`Typography`, `Button`, `IconButton`, `Input`, `Checkbox`, `Select`, `Popover`, `DatePicker`, `Table`/`DataTable`), importados de `@/components/ui`. `Checkbox`/`Select`/`Popover` são adapters sobre o pacote `radix-ui`; `DatePicker` usa `react-day-picker` (locale `pt-BR`); `DataTable` usa `@tanstack/react-table` v8 (headless) por cima dos componentes `Table`. Telas antigas ainda usam `<input>`/`<select>`/`<table>` nativos com as classes `field`/`btn` direto — migração é gradual, tela por tela.
 
 ### Localização
 

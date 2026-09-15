@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { pastorals, users } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 import type { UserRole } from "@/lib/session-token";
 
@@ -31,6 +31,11 @@ export default async function UsersPage({
     })
     .from(users)
     .orderBy(users.username);
+
+  const allPastorals = await db
+    .select({ id: pastorals.id, name: pastorals.name })
+    .from(pastorals)
+    .orderBy(pastorals.name);
 
   return (
     <div>
@@ -109,6 +114,19 @@ export default async function UsersPage({
             <option value="pastoral_coordinator">Coordenador de Pastoral</option>
             <option value="catechesis_coordinator">Coordenador de Catequese</option>
             <option value="catechist">Catequista</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="pastoralId" className="text-body font-semibold text-foreground">
+            Pastoral (só para Coordenador de Pastoral)
+          </label>
+          <select id="pastoralId" name="pastoralId" className="field mt-1">
+            <option value="">— nenhuma —</option>
+            {allPastorals.map((pastoral) => (
+              <option key={pastoral.id} value={pastoral.id}>
+                {pastoral.name}
+              </option>
+            ))}
           </select>
         </div>
         <button type="submit" className="btn btn-confirm">

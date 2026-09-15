@@ -21,6 +21,10 @@ const createUserSchema = z.object({
     "catechesis_coordinator",
     "catechist",
   ]),
+  pastoralId: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : value),
+    z.coerce.number().int().positive().optional(),
+  ),
 });
 
 export async function createUser(formData: FormData) {
@@ -31,6 +35,7 @@ export async function createUser(formData: FormData) {
     name: formData.get("name"),
     password: formData.get("password"),
     role: formData.get("role"),
+    pastoralId: formData.get("pastoralId"),
   });
 
   const passwordHash = await hash(data.password);
@@ -41,6 +46,7 @@ export async function createUser(formData: FormData) {
       name: data.name,
       passwordHash,
       role: data.role,
+      pastoralId: data.role === "pastoral_coordinator" ? (data.pastoralId ?? null) : null,
     });
   } catch (error) {
     // Driver Neon não expõe um formato de erro estável para constraint

@@ -93,4 +93,21 @@ export const users = pgTable("users", {
   role: userRole("role").notNull(),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  pastoralId: integer("pastoral_id").references(() => pastorals.id),
+});
+
+export const pastorals = pgTable("pastorals", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+});
+
+export const pastoralMembers = pgTable("pastoral_members", {
+  id: serial("id").primaryKey(),
+  pastoralId: integer("pastoral_id")
+    .notNull()
+    .references(() => pastorals.id),
+  name: text("name").notNull(),
+  phone: text("phone"),
+  notes: text("notes"),
+  active: boolean("active").notNull().default(true),
 });

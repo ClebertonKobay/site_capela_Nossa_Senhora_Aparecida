@@ -24,13 +24,13 @@ export default async function EventsListPage() {
       </div>
 
       {allEvents.length === 0 ? (
-        <p className="mt-4 text-base text-foreground/60">Nenhum evento cadastrado.</p>
+        <p className="mt-4 text-base text-foreground/70">Nenhum evento cadastrado.</p>
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
           {allEvents.map((event) => (
             <li key={event.id} className="rounded-2xl border border-border bg-surface shadow-card px-4 py-3">
               <p className="font-semibold text-primary">
-                {event.featured && <span className="mr-1 text-accent">★</span>}
+                {event.featured && <span className="mr-1 text-accent-dark">★</span>}
                 {event.name}
               </p>
               <p className="text-base">{formatEventDateTime(event.startAt)}</p>

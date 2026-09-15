@@ -10,7 +10,7 @@ export function AdminBackLink() {
   return (
     <Link
       href="/admin"
-      className="btn !min-h-9 border-2 border-white/40 !bg-transparent px-3 py-1 text-sm font-semibold text-white hover:border-accent hover:!text-accent"
+      className="btn border-2 border-white/40 !bg-transparent px-3 py-1 text-sm font-semibold text-white hover:border-accent hover:!text-accent"
     >
       Voltar
     </Link>

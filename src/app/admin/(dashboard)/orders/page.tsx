@@ -36,7 +36,7 @@ export default async function OrdersPage() {
       </div>
 
       {rows.length === 0 ? (
-        <p className="mt-4 text-base text-foreground/60">Nenhum pedido ainda.</p>
+        <p className="mt-4 text-base text-foreground/70">Nenhum pedido ainda.</p>
       ) : (
         <>
           <ul className="mt-4 flex flex-col gap-3 md:hidden">

@@ -1,6 +1,8 @@
 import { eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 
 import { BuyCards } from "@/components/BuyCards";
 import { PageShell } from "@/components/PageShell";
@@ -11,12 +13,35 @@ import { CHAPEL_ADDRESS, MAPS_LINK } from "@/lib/location";
 
 export const revalidate = 300;
 
+const getEvent = cache(async (eventId: number) => {
+  const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+  return event ?? null;
+});
+
+export async function generateMetadata({ params }: PageProps<"/events/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const eventId = Number(id);
+  if (!Number.isInteger(eventId)) return {};
+
+  const event = await getEvent(eventId);
+  if (!event) return {};
+
+  const title = `${event.name} · Capela Nossa Senhora Aparecida`;
+  const description = `${event.name} — ${formatEventDateTime(event.startAt)} — ${event.location ?? CHAPEL_ADDRESS}`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
+}
+
 export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   const { id } = await params;
   const eventId = Number(id);
   if (!Number.isInteger(eventId)) notFound();
 
-  const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+  const event = await getEvent(eventId);
   if (!event) notFound();
 
   return (
@@ -24,7 +49,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
       <div className="px-4 py-6">
         <Link
           href="/"
-          className="flex min-h-11 w-fit items-center text-base font-semibold text-primary-light hover:text-primary mt-8 md:mt-0"
+          className="flex min-h-11 w-fit items-center text-base font-semibold text-primary-light hover:text-primary"
         >
           ← Voltar
         </Link>

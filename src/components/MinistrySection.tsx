@@ -7,7 +7,7 @@ type Tone = "primary-light" | "accent";
 
 const ICON_PANEL_CLASSES: Record<Tone, string> = {
   "primary-light": "bg-primary-light/15 text-primary",
-  accent: "bg-accent/15 text-accent",
+  accent: "bg-accent/15 text-accent-dark",
 };
 
 const SILL_CLASSES: Record<Tone, string> = {

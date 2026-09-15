@@ -27,7 +27,7 @@ export function Header({ nav = "home" }: { nav?: "home" | "inner" }) {
         </a>
 
         {/* Desktop */}
-        <nav className="hidden min-w-0 flex-1 gap-4 overflow-x-auto whitespace-nowrap py-2 md:flex">
+        <nav className="hidden min-w-0 flex-1 gap-4 overflow-x-auto whitespace-nowrap py-2 md:flex" aria-label="Navegação principal">
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
@@ -55,7 +55,7 @@ export function Header({ nav = "home" }: { nav?: "home" | "inner" }) {
       </div>
 
       {menuOpen && (
-        <nav className="border-t border-primary/10 px-4 pb-2 md:hidden">
+        <nav className="border-t border-primary/10 px-4 pb-2 md:hidden" aria-label="Navegação principal">
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}

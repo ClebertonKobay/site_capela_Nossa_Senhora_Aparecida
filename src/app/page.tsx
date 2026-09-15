@@ -111,7 +111,7 @@ export default async function HomePage() {
 
           {nextMass && (
             <section className="relative z-10 mx-3 -mt-6 rounded-3xl bg-accent px-5 py-6 text-primary shadow-card sm:-mt-8">
-              <p className="text-caption font-semibold uppercase tracking-widest text-primary/70">Próxima Missa</p>
+              <p className="text-caption font-semibold uppercase tracking-widest text-primary">Próxima Missa</p>
               <p className="mt-2 text-display leading-tight sm:text-5xl">
                 {WEEKDAY_LABELS[nextMass.weekday]}, {formatShortDate(nextMass.date)} às {formatTime(nextMass.time)}
               </p>
@@ -119,7 +119,7 @@ export default async function HomePage() {
                 <span className="font-semibold">Celebrante:</span>
                 <span>{nextMass.celebrant ?? "A definir"}</span>
               </div>
-              {nextMass.note && <p className="mt-2 text-caption italic text-primary/80">{nextMass.note}</p>}
+              {nextMass.note && <p className="mt-2 text-caption italic text-primary">{nextMass.note}</p>}
             </section>
           )}
 
@@ -182,7 +182,7 @@ export default async function HomePage() {
                     {WEEKDAY_LABELS[day.weekday]} · {formatShortDate(day.date)}
                   </p>
                   {day.items.length === 0 ? (
-                    <p className="text-base text-foreground/60">Sem atividades programadas.</p>
+                    <p className="text-base text-foreground/70">Sem atividades programadas.</p>
                   ) : (
                     <ul className="mt-1 flex flex-col gap-1">
                       {day.items.map((item) => {
@@ -208,7 +208,7 @@ export default async function HomePage() {
           <section id="eventos" className="scroll-mt-24 bg-surface-muted px-4 py-6">
             <h2 className="text-title text-primary">Próximos eventos</h2>
             {upcomingEvents.length === 0 ? (
-              <p className="mt-2 text-base text-foreground/60">Nenhum evento programado no momento.</p>
+              <p className="mt-2 text-base text-foreground/70">Nenhum evento programado no momento.</p>
             ) : (
               <ul className="mt-4 flex flex-col gap-3">
                 {upcomingEvents.map((event) => (
@@ -218,7 +218,7 @@ export default async function HomePage() {
                   >
                     <Link href={`/events/${event.id}`} className="block rounded-xl">
                       <p className="font-semibold text-primary">
-                        {event.featured && <span className="mr-1 text-accent">★</span>}
+                        {event.featured && <span className="mr-1 text-accent-dark">★</span>}
                         {event.name}
                       </p>
                       <p className="text-base">{formatEventDateTime(event.startAt)}</p>

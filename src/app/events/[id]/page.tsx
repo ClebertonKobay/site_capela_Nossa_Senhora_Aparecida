@@ -24,7 +24,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
       <div className="px-4 py-6">
         <Link
           href="/"
-          className="flex min-h-11 w-fit items-center text-base font-semibold text-primary-light hover:text-primary"
+          className="flex min-h-11 w-fit items-center text-base font-semibold text-primary-light hover:text-primary mt-8 md:mt-0"
         >
           ← Voltar
         </Link>

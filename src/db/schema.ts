@@ -111,3 +111,39 @@ export const pastoralMembers = pgTable("pastoral_members", {
   notes: text("notes"),
   active: boolean("active").notNull().default(true),
 });
+
+export const catechismClasses = pgTable("catechism_classes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  catechistId: integer("catechist_id").references(() => users.id),
+  weekday: integer("weekday").notNull(), // 0 = domingo ... 6 = sábado
+  time: time("time").notNull(),
+  active: boolean("active").notNull().default(true),
+});
+
+export const catechumens = pgTable("catechumens", {
+  id: serial("id").primaryKey(),
+  classId: integer("class_id")
+    .notNull()
+    .references(() => catechismClasses.id),
+  name: text("name").notNull(),
+  guardianName: text("guardian_name"),
+  guardianPhone: text("guardian_phone"),
+  active: boolean("active").notNull().default(true),
+});
+
+export const catechismAttendance = pgTable(
+  "catechism_attendance",
+  {
+    id: serial("id").primaryKey(),
+    classId: integer("class_id")
+      .notNull()
+      .references(() => catechismClasses.id),
+    catechumenId: integer("catechumen_id")
+      .notNull()
+      .references(() => catechumens.id),
+    date: date("date").notNull(),
+    present: boolean("present").notNull(),
+  },
+  (table) => [unique().on(table.classId, table.catechumenId, table.date)],
+);

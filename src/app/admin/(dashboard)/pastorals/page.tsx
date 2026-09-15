@@ -5,6 +5,7 @@ import { pastoralMembers, pastorals, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireRole } from "@/lib/auth";
 import { formatPhone } from "@/lib/phone";
+import { Button, Input } from "@/components/ui";
 
 import { createPastoralMember, toggleMemberActive, updatePastoralMember } from "./actions";
 
@@ -118,45 +119,39 @@ export default async function PastoralsPage({
             <form action={updatePastoralMember} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="id" value={member.id} />
               <input type="hidden" name="pastoralId" value={pastoralId} />
-              <input
+              <Input
                 type="text"
                 name="name"
                 defaultValue={member.name}
                 required
-                className="field"
                 aria-label={`Nome de ${member.name}`}
               />
-              <input
+              <Input
                 type="text"
                 name="phone"
                 defaultValue={member.phone ? formatPhone(member.phone) : ""}
                 placeholder="(42) 99999-8888"
-                className="field"
                 aria-label={`Telefone de ${member.name}`}
               />
-              <input
+              <Input
                 type="text"
                 name="notes"
                 defaultValue={member.notes ?? ""}
                 placeholder="Notas"
-                className="field"
                 aria-label={`Notas de ${member.name}`}
               />
-              <button type="submit" className="btn btn-secondary">
+              <Button type="submit" variant="secondary">
                 Salvar
-              </button>
+              </Button>
             </form>
 
             <form action={toggleMemberActive}>
               <input type="hidden" name="id" value={member.id} />
               <input type="hidden" name="pastoralId" value={pastoralId} />
               <input type="hidden" name="active" value={member.active ? "false" : "true"} />
-              <button
-                type="submit"
-                className={`btn ${member.active ? "btn-delete" : "btn-secondary"}`}
-              >
+              <Button type="submit" variant={member.active ? "cancel" : "secondary"}>
                 {member.active ? "Desativar" : "Ativar"}
-              </button>
+              </Button>
             </form>
           </li>
         ))}
@@ -164,34 +159,17 @@ export default async function PastoralsPage({
 
       <form action={createPastoralMember} className="mt-8 flex max-w-md flex-col gap-4">
         <h2 className="text-subtitle text-primary">Novo membro</h2>
-        <div>
-          <label htmlFor="name" className="text-body font-semibold text-foreground">
-            Nome
-          </label>
-          <input id="name" type="text" name="name" required className="field mt-1" />
-        </div>
-        <div>
-          <label htmlFor="phone" className="text-body font-semibold text-foreground">
-            Telefone
-          </label>
-          <input
-            id="phone"
-            type="text"
-            name="phone"
-            placeholder="(42) 99999-8888"
-            className="field mt-1"
-          />
-        </div>
-        <div>
-          <label htmlFor="notes" className="text-body font-semibold text-foreground">
-            Notas
-          </label>
-          <input id="notes" type="text" name="notes" className="field mt-1" />
-        </div>
+        <Input label="Nome" id="name" type="text" name="name" required />
+        <Input
+          label="Telefone"
+          id="phone"
+          type="text"
+          name="phone"
+          placeholder="(42) 99999-8888"
+        />
+        <Input label="Notas" id="notes" type="text" name="notes" />
         <input type="hidden" name="pastoralId" value={pastoralId} />
-        <button type="submit" className="btn btn-confirm">
-          Adicionar membro
-        </button>
+        <Button type="submit">Adicionar membro</Button>
       </form>
     </div>
   );

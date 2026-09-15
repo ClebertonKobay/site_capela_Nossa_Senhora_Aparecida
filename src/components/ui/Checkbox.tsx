@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 interface CheckboxProps {
   label?: string;
   checked?: boolean;
+  defaultChecked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   name?: string;
   disabled?: boolean;
@@ -15,6 +16,7 @@ interface CheckboxProps {
 export function Checkbox({
   label,
   checked,
+  defaultChecked,
   onCheckedChange,
   name,
   disabled,
@@ -24,6 +26,7 @@ export function Checkbox({
     <label className="flex min-h-11 items-center gap-2">
       <RadixCheckbox.Root
         checked={checked}
+        defaultChecked={defaultChecked}
         onCheckedChange={onCheckedChange}
         name={name}
         disabled={disabled}

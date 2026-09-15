@@ -5,6 +5,7 @@ import { catechismAttendance, catechismClasses, catechumens } from "@/db/schema"
 import { requireRole } from "@/lib/auth";
 import { formatTime } from "@/lib/format";
 import { WEEKDAY_LABELS } from "@/lib/schedules";
+import { Button, Checkbox, Input } from "@/components/ui";
 
 import { saveAttendance } from "./attendance-actions";
 
@@ -62,15 +63,10 @@ export default async function MyClassesPage({
       <h1 className="text-title text-primary">Minhas Turmas</h1>
 
       <form method="get" className="mt-4 flex flex-wrap items-end gap-2">
-        <div>
-          <label htmlFor="date" className="text-body font-semibold text-foreground">
-            Data
-          </label>
-          <input id="date" type="date" name="date" defaultValue={date} className="field mt-1" />
-        </div>
-        <button type="submit" className="btn btn-secondary">
+        <Input type="date" label="Data" id="date" name="date" defaultValue={date} />
+        <Button type="submit" variant="secondary">
           Ver
-        </button>
+        </Button>
       </form>
 
       <div className="mt-8 flex flex-col gap-8">
@@ -102,24 +98,18 @@ export default async function MyClassesPage({
                   {classCatechumens.map((catechumen) => {
                     const existing = attendanceOfClass.find((a) => a.catechumenId === catechumen.id);
                     return (
-                      <label
+                      <Checkbox
                         key={catechumen.id}
-                        className="flex min-h-11 items-center gap-2 text-body"
-                      >
-                        <input
-                          type="checkbox"
-                          name={`present-${catechumen.id}`}
-                          defaultChecked={existing?.present ?? false}
-                          className="h-5 w-5"
-                        />
-                        {catechumen.name}
-                      </label>
+                        name={`present-${catechumen.id}`}
+                        defaultChecked={existing?.present ?? false}
+                        label={catechumen.name}
+                      />
                     );
                   })}
 
-                  <button type="submit" className="btn btn-confirm mt-2 self-start">
+                  <Button type="submit" className="mt-2 self-start">
                     Salvar presença
-                  </button>
+                  </Button>
                 </form>
               )}
             </section>

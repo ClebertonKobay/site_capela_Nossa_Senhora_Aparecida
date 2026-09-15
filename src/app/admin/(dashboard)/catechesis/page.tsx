@@ -6,9 +6,12 @@ import { requireRole } from "@/lib/auth";
 import { formatTime } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { WEEKDAY_LABELS } from "@/lib/schedules";
+import { Button, Input } from "@/components/ui";
 
 import { assignCatechist, createClass, toggleClassActive } from "./classes-actions";
 import { createCatechumen } from "./catechumens-actions";
+import { WeekdaySelect } from "./WeekdaySelect";
+import { AssignCatechistSelect } from "./AssignCatechistSelect";
 
 export default async function CatechesisPage() {
   await requireRole(["admin", "catechesis_coordinator"]);
@@ -59,34 +62,22 @@ export default async function CatechesisPage() {
               </div>
 
               <form action={assignCatechist} className="flex flex-wrap items-center gap-2">
-                <input type="hidden" name="classId" value={turma.id} />
-                <select
-                  name="catechistId"
-                  className="field"
-                  defaultValue={turma.catechistId ?? ""}
-                  aria-label={`Catequista de ${turma.name}`}
-                >
-                  <option value="">— sem catequista —</option>
-                  {catechists.map((catechist) => (
-                    <option key={catechist.id} value={catechist.id}>
-                      {catechist.name}
-                    </option>
-                  ))}
-                </select>
-                <button type="submit" className="btn btn-secondary">
+                <AssignCatechistSelect
+                  classId={turma.id}
+                  defaultCatechistId={turma.catechistId}
+                  catechists={catechists}
+                />
+                <Button type="submit" variant="secondary">
                   Atribuir
-                </button>
+                </Button>
               </form>
 
               <form action={toggleClassActive}>
                 <input type="hidden" name="id" value={turma.id} />
                 <input type="hidden" name="active" value={turma.active ? "false" : "true"} />
-                <button
-                  type="submit"
-                  className={`btn ${turma.active ? "btn-delete" : "btn-secondary"}`}
-                >
+                <Button type="submit" variant={turma.active ? "cancel" : "secondary"}>
                   {turma.active ? "Desativar" : "Ativar"}
-                </button>
+                </Button>
               </form>
 
               <div>
@@ -113,52 +104,32 @@ export default async function CatechesisPage() {
               >
                 <input type="hidden" name="classId" value={turma.id} />
                 <div>
-                  <label
-                    htmlFor={`catechumen-name-${turma.id}`}
-                    className="text-caption font-semibold text-foreground"
-                  >
-                    Nome
-                  </label>
-                  <input
+                  <Input
                     id={`catechumen-name-${turma.id}`}
                     type="text"
                     name="name"
                     required
-                    className="field mt-1"
+                    label="Nome"
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor={`guardian-name-${turma.id}`}
-                    className="text-caption font-semibold text-foreground"
-                  >
-                    Responsável
-                  </label>
-                  <input
+                  <Input
                     id={`guardian-name-${turma.id}`}
                     type="text"
                     name="guardianName"
-                    className="field mt-1"
+                    label="Responsável"
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor={`guardian-phone-${turma.id}`}
-                    className="text-caption font-semibold text-foreground"
-                  >
-                    Telefone do responsável
-                  </label>
-                  <input
+                  <Input
                     id={`guardian-phone-${turma.id}`}
                     type="text"
                     name="guardianPhone"
                     placeholder="(42) 99999-8888"
-                    className="field mt-1"
+                    label="Telefone do responsável"
                   />
                 </div>
-                <button type="submit" className="btn btn-confirm">
-                  Adicionar
-                </button>
+                <Button type="submit">Adicionar</Button>
               </form>
             </li>
           );
@@ -168,32 +139,15 @@ export default async function CatechesisPage() {
       <form action={createClass} className="mt-8 flex max-w-md flex-col gap-4">
         <h2 className="text-subtitle text-primary">Nova turma</h2>
         <div>
-          <label htmlFor="name" className="text-body font-semibold text-foreground">
-            Nome
-          </label>
-          <input id="name" type="text" name="name" required className="field mt-1" />
+          <Input id="name" type="text" name="name" required label="Nome" />
         </div>
         <div>
-          <label htmlFor="weekday" className="text-body font-semibold text-foreground">
-            Dia da semana
-          </label>
-          <select id="weekday" name="weekday" required className="field mt-1">
-            {WEEKDAY_LABELS.map((label, index) => (
-              <option key={label} value={index}>
-                {label}
-              </option>
-            ))}
-          </select>
+          <WeekdaySelect />
         </div>
         <div>
-          <label htmlFor="time" className="text-body font-semibold text-foreground">
-            Horário
-          </label>
-          <input id="time" type="time" name="time" required className="field mt-1" />
+          <Input id="time" type="time" name="time" required label="Horário" />
         </div>
-        <button type="submit" className="btn btn-confirm">
-          Criar turma
-        </button>
+        <Button type="submit">Criar turma</Button>
       </form>
     </div>
   );

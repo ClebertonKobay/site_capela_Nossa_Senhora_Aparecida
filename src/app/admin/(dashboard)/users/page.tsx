@@ -2,8 +2,10 @@ import { db } from "@/db";
 import { pastorals, users } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 import type { UserRole } from "@/lib/session-token";
+import { Button, Input } from "@/components/ui";
 
 import { createUser, toggleUserActive } from "./actions";
+import { RoleAndPastoralFields } from "./RoleAndPastoralFields";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   admin: "Administrador",
@@ -66,12 +68,9 @@ export default async function UsersPage({
             </div>
             <form action={toggleUserActive}>
               <input type="hidden" name="id" value={user.id} />
-              <button
-                type="submit"
-                className={user.active ? "btn btn-delete" : "btn btn-secondary"}
-              >
+              <Button type="submit" variant={user.active ? "cancel" : "secondary"}>
                 {user.active ? "Desativar" : "Ativar"}
-              </button>
+              </Button>
             </form>
           </li>
         ))}
@@ -79,59 +78,11 @@ export default async function UsersPage({
 
       <h2 className="mt-8 text-subtitle text-primary">Novo usuário</h2>
       <form action={createUser} className="mt-4 flex max-w-md flex-col gap-4">
-        <div>
-          <label htmlFor="username" className="text-body font-semibold text-foreground">
-            Usuário
-          </label>
-          <input id="username" type="text" name="username" required className="field mt-1" />
-        </div>
-        <div>
-          <label htmlFor="name" className="text-body font-semibold text-foreground">
-            Nome
-          </label>
-          <input id="name" type="text" name="name" required className="field mt-1" />
-        </div>
-        <div>
-          <label htmlFor="password" className="text-body font-semibold text-foreground">
-            Senha
-          </label>
-          <input
-            id="password"
-            type="password"
-            name="password"
-            required
-            minLength={8}
-            className="field mt-1"
-          />
-        </div>
-        <div>
-          <label htmlFor="role" className="text-body font-semibold text-foreground">
-            Papel
-          </label>
-          <select id="role" name="role" required className="field mt-1">
-            <option value="admin">Administrador</option>
-            <option value="chapel_coordinator">Coordenador de Capela</option>
-            <option value="pastoral_coordinator">Coordenador de Pastoral</option>
-            <option value="catechesis_coordinator">Coordenador de Catequese</option>
-            <option value="catechist">Catequista</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="pastoralId" className="text-body font-semibold text-foreground">
-            Pastoral (só para Coordenador de Pastoral)
-          </label>
-          <select id="pastoralId" name="pastoralId" className="field mt-1">
-            <option value="">— nenhuma —</option>
-            {allPastorals.map((pastoral) => (
-              <option key={pastoral.id} value={pastoral.id}>
-                {pastoral.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" className="btn btn-confirm">
-          Criar usuário
-        </button>
+        <Input label="Usuário" type="text" name="username" required />
+        <Input label="Nome" type="text" name="name" required />
+        <Input label="Senha" type="password" name="password" required minLength={8} />
+        <RoleAndPastoralFields pastorals={allPastorals} />
+        <Button type="submit">Criar usuário</Button>
       </form>
     </div>
   );

@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 
 import { ExportCsvButton } from "@/components/admin/ExportCsvButton";
+import { OrdersTable } from "@/components/admin/OrdersTable";
 import { db } from "@/db";
 import { cardOrders, events } from "@/db/schema";
 import { formatDateTime } from "@/lib/format";
@@ -51,29 +52,8 @@ export default async function OrdersPage() {
             ))}
           </ul>
 
-          <div className="mt-4 hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[560px] border-collapse text-left text-base">
-              <thead>
-                <tr className="border-b-2 border-border">
-                  <th className="py-2 pr-3">Nome</th>
-                  <th className="py-2 pr-3">Telefone</th>
-                  <th className="py-2 pr-3">Qtd</th>
-                  <th className="py-2 pr-3">Evento</th>
-                  <th className="py-2 pr-3">Data</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-border">
-                    <td className="py-2 pr-3">{row.name}</td>
-                    <td className="py-2 pr-3">{formatPhone(row.phone)}</td>
-                    <td className="py-2 pr-3">{row.quantity}</td>
-                    <td className="py-2 pr-3">{row.eventName}</td>
-                    <td className="py-2 pr-3">{formatDateTime(row.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4 hidden md:block">
+            <OrdersTable rows={rows} />
           </div>
         </>
       )}

@@ -52,6 +52,14 @@ Para acrescentar fases aqui, ver `/criar-plano`.
 | TUI.10 | `DataTable` (TanStack Table) | sonnet | [x] |
 | TUI.11 | Barrel export (`src/components/ui/index.ts`) | haiku | [x] |
 | TUI.12 | Documentar no CLAUDE.md | haiku | [x] |
+| TM.1 | Migrar botões avulsos (Delete/Export/Logout) | haiku | [x] |
+| TM.2 | Migrar `celebrants/page.tsx` | sonnet | [x] |
+| TM.3 | Migrar `EventForm.tsx` | sonnet | [x] |
+| TM.4 | Migrar `users/page.tsx` | sonnet | [x] |
+| TM.5 | Migrar `catechesis/page.tsx` | sonnet | [x] |
+| TM.6 | Migrar `my-classes/page.tsx` | sonnet | [x] |
+| TM.7 | Migrar `pastorals/page.tsx` e `pastorals/manage/page.tsx` | sonnet | [x] |
+| TM.8 | `OrdersTable` (DataTable) em `orders/page.tsx` | sonnet | [x] |
 
 `⚠` = precisa de uma ação do Cleberton antes de rodar (não é decisão — é ele digitar a própria senha).
 
@@ -873,6 +881,94 @@ reescrita completa (API `useTable`/`createTableHook`, sem `useReactTable`/`getCo
 
 ---
 
+## Fase UI-migração — Aplicar a biblioteca nas telas existentes
+
+Decisão revista pelo Cleberton: em vez de deixar a migração para depois (item 5 original das
+"Decisões em aberto"), aplicar agora. Cada tarefa troca `<input>`/`<select>`/`<input
+type="checkbox">`/`<button>` nativos pelos componentes de `src/components/ui/` numa tela só —
+mesmo texto, mesmo `name=`, mesma Server Action, só a casca visual/acessibilidade muda. Os campos
+`datetime-local` do `EventForm.tsx` migram para o `Input` (só estilo — o `Input` é um wrapper
+genérico de `<input>`, não muda o tipo nem o valor), **não** para o `DatePicker` (que trabalha com
+`Date` do JS e exigiria reescrever o parsing de fuso horário — fora de escopo, risco desnecessário).
+
+### TM.1 — Migrar botões avulsos
+
+- **Arquivos**: `src/components/admin/DeleteEventButton.tsx`, `src/components/admin/ExportCsvButton.tsx`, `src/components/admin/LogoutButton.tsx`
+- **Modelo**: haiku
+- **Depende de**: —
+- **Fazer**: nos três arquivos, trocar `<button type="..." className="btn btn-delete">`/`"btn btn-secondary"`/classes equivalentes por `<Button variant="cancel">`/`<Button variant="secondary">` de `@/components/ui` (import `{ Button } from "@/components/ui";`). `LogoutButton.tsx` tem classes extras de override (`!min-h-9 border-2 border-white/40 !bg-transparent ...` — é o botão pequeno no header escuro do admin); passe essas classes extras via `className` no `<Button variant="secondary" className="...">`, mantendo o efeito visual idêntico.
+- **Aceite**: `npm run build` passa; os três botões continuam com a mesma aparência e o `confirm()` do `DeleteEventButton` continua funcionando.
+- **Não fazer**: não mexer na lógica de `handleExport`, `handleLogout` nem no `confirm()`.
+
+### TM.2 — Migrar `celebrants/page.tsx`
+
+- **Arquivos**: `src/app/admin/(dashboard)/celebrants/page.tsx`
+- **Modelo**: sonnet
+- **Depende de**: —
+- **Contexto**: `src/components/ui/Checkbox.tsx` já aceita `defaultChecked?: boolean` (repassado direto pro `RadixCheckbox.Root`, modo não controlado — funciona normal dentro de `<form action={ServerAction}>`, já que o Radix Checkbox gera um input nativo escondido pra participar do `FormData` quando recebe `name`).
+- **Fazer**: importar `{ Input, Checkbox, Button } from "@/components/ui"`. Trocar o `<input type="text" ... className="field flex-1">` do nome do celebrante por `<Input className="flex-1" .../>` (mantém `list`, `name`, `placeholder`, `aria-label`, `defaultValue` via spread). Trocar `<input type="checkbox" name={...} className="h-5 w-5">` (dentro do `<label>` "Cancelada") por `<Checkbox name={...} label="Cancelada" defaultChecked={...}>`. Botão "Salvar" → `<Button>Salvar</Button>` com as classes extras que já tinha (`mt-6 w-full px-4 py-3 text-lg sm:w-auto`) via `className`.
+- **Aceite**: `npm run build` passa; salvar celebrantes continua funcionando (mesmo `name=` em todos os campos, mesma Server Action `saveCelebrants`).
+- **Não fazer**: não mudar `saveCelebrants` nem nenhum `name=` de campo. Não editar `src/components/ui/Checkbox.tsx` — já está pronto.
+
+### TM.3 — Migrar `EventForm.tsx`
+
+- **Arquivos**: `src/components/admin/EventForm.tsx`
+- **Modelo**: sonnet
+- **Depende de**: —
+- **Fazer**: importar `{ Input, Checkbox, Button } from "@/components/ui"`. Trocar os `<input>` de texto/telefone/preço/datetime-local (`name`, `location`, `whatsappPhone`, `cardPrice`, `startAt`, `endAt`) que hoje usam `className={inputClass}` por `<Input label="..." .../>` — **mantenha os `<label>` que já existem hoje como texto do próprio JSX ou passe via prop `label` do `Input`, sem duplicar o rótulo**. A `<textarea>` (`description`) fica nativa (o `Input` só envolve `<input>`, não `<textarea>`) — só mantenha a classe `field`. Os dois `<input type="checkbox">` (`sellsCards`, `featured`) viram `<Checkbox name="..." label="...">`. Os botões "Testar no WhatsApp" (habilitado e desabilitado) e "Salvar" viram `<Button>`/`<a>` conforme já são hoje (o link de WhatsApp continua `<a>`, não `<Button>`, já que abre nova aba — só ajuste a classe se fizer sentido, mas não é obrigatório trocar um `<a>` por `<Button>`).
+- **Aceite**: `npm run build` passa; criar/editar evento continua funcionando, incluindo o preview do texto do WhatsApp (`previewMessage`) e o `phoneHint`.
+- **Não fazer**: não trocar `startAt`/`endAt` para o `DatePicker` — fica `Input` mesmo (só estilo, mesmo `type="datetime-local"`, mesmo valor string). Não mudar `parseSaoPauloDateTime`/`normalizePhone`/`parseCurrencyToCents` nem nenhuma validação.
+
+### TM.4 — Migrar `users/page.tsx`
+
+- **Arquivos**: `src/app/admin/(dashboard)/users/page.tsx`
+- **Modelo**: sonnet
+- **Depende de**: —
+- **Fazer**: importar `{ Input, Select, Button } from "@/components/ui"`. Trocar os `<input>` de username/nome/senha por `<Input label="..." .../>`. Trocar o `<select name="role">` e o `<select name="pastoralId">` por `<Select name="role" label="Papel" options={[...]} value={...} onValueChange={...}>` — **atenção**: o `Select` de `@/components/ui` é controlado (`value`/`onValueChange`), e esta tela usa `<form action={createUser}>` (Server Action nativa, sem estado client) — pra manter funcionando sem virar Client Component inteiro, envolva só os dois `<Select>` num pequeno wrapper `"use client"` (ex. `RoleAndPastoralFields.tsx` dentro da mesma pasta) que mantém `useState` local pro `value` de cada select e usa o `<input type="hidden">` que o `Select` já gera sozinho quando recebe `name` — o resto do formulário (inputs de texto, botão) continua Server Component. Botão "Criar usuário" e os botões "Ativar"/"Desativar" viram `<Button>`.
+- **Aceite**: `npm run build` passa; criar usuário com um papel específico e pastoral continua gravando certo (confira que o `FormData` do lado do servidor recebe `role` e `pastoralId` certos — é o item 6 das antigas "Decisões em aberto", resolvido na prática aqui).
+- **Não fazer**: não mudar `createUserSchema` nem `toggleUserActive` em `users/actions.ts`.
+
+### TM.5 — Migrar `catechesis/page.tsx`
+
+- **Arquivos**: `src/app/admin/(dashboard)/catechesis/page.tsx`; cria um wrapper client pequeno se necessário (mesmo padrão da TM.4)
+- **Modelo**: sonnet
+- **Depende de**: TM.4 (mesmo padrão de wrapper client pro `Select` dentro de Server Action — reaproveitar a solução, não reinventar)
+- **Fazer**: importar `{ Input, Select, Button } from "@/components/ui"`. `<select name="weekday">` (dia da semana) e `<select name="catechistId">` (atribuir catequista) viram `<Select>`, mesmo padrão de wrapper client da TM.4. Campos de texto (`name` da turma, `name`/`guardianName`/`guardianPhone` do catequizando, `time`) viram `<Input>`. Botões viram `<Button>`.
+- **Aceite**: `npm run build` passa; criar turma, atribuir catequista e cadastrar catequizando continuam funcionando.
+- **Não fazer**: não mudar nenhuma Server Action de `classes-actions.ts`/`catechumens-actions.ts`.
+
+### TM.6 — Migrar `my-classes/page.tsx`
+
+- **Arquivos**: `src/app/admin/(dashboard)/my-classes/page.tsx`
+- **Modelo**: sonnet
+- **Depende de**: —
+- **Fazer**: importar `{ Input, Checkbox, Button } from "@/components/ui"`. O `<input type="date" name="date">` do seletor de data (formulário `method="get"`, sem Server Action) vira `<Input type="date" label="Data" defaultValue={date} />`. Os checkboxes de presença (`present-{id}`) viram `<Checkbox name={...} defaultChecked={...}>` (o `Checkbox` já aceita `defaultChecked`, ver TM.2). Botões "Ver"/"Salvar presença" viram `<Button>`.
+- **Aceite**: `npm run build` passa; trocar a data e marcar presença continuam funcionando.
+- **Não fazer**: não mudar `saveAttendance` nem a lógica de filtro por `catechistId`.
+
+### TM.7 — Migrar `pastorals/page.tsx` e `pastorals/manage/page.tsx`
+
+- **Arquivos**: `src/app/admin/(dashboard)/pastorals/page.tsx`, `src/app/admin/(dashboard)/pastorals/manage/page.tsx`
+- **Modelo**: sonnet
+- **Depende de**: —
+- **Fazer**: importar `{ Input, Button } from "@/components/ui"`. Campos de texto/telefone/notas dos formulários de membro e de pastoral viram `<Input>`. Botões viram `<Button>`. Nenhum `<select>` nessas duas telas — não precisa do wrapper client da TM.4.
+- **Aceite**: `npm run build` passa; cadastrar/editar membro e criar/renomear pastoral continuam funcionando, incluindo a checagem de posse (`assertOwnership`/`resolvePastoralId`) que já existe nas Server Actions.
+- **Não fazer**: não mudar `pastorals/actions.ts` nem `pastorals/manage/actions.ts`.
+
+### TM.8 — `OrdersTable` (DataTable) em `orders/page.tsx`
+
+- **Arquivos**: cria `src/components/admin/OrdersTable.tsx`; edita `src/app/admin/(dashboard)/orders/page.tsx`
+- **Modelo**: sonnet
+- **Depende de**: —
+- **Contexto**: `orders/page.tsx` é Server Component (busca `rows` do banco). `DataTable` é Client Component e sua prop `columns: ColumnDef<TData, TValue>[]` contém funções (render de célula) — **não dá pra passar `columns` de um Server Component pra um Client Component** (Next.js recusa função como prop entre os dois). Por isso este componente novo, `OrdersTable`, é `"use client"`, recebe só `rows` (dado serializável) como prop, e define `columns` **dentro dele mesmo**.
+- **Fazer**:
+  1. `src/components/admin/OrdersTable.tsx`: `"use client"`; importa `{ DataTable } from "@/components/ui"`, `{ ColumnDef } from "@tanstack/react-table"`, `formatPhone` de `@/lib/phone`, `formatDateTime` de `@/lib/format`. Recebe `{ rows }: { rows: { id: number; name: string; phone: string; quantity: number; eventName: string; createdAt: Date }[] }` (o mesmo formato de linha que `orders/page.tsx` já busca do banco, sem o `exportRows` formatado — o `DataTable` formata na própria `cell` de cada coluna). Define `columns: ColumnDef<Row>[]` com 5 colunas (Nome, Telefone, Qtd, Evento, Data), `enableSorting: true` na coluna Nome e na de Data (as mais úteis de ordenar), `cell` de Telefone usando `formatPhone(row.original.phone)`, `cell` de Data usando `formatDateTime(row.original.createdAt)`. Renderiza `<DataTable columns={columns} data={rows} />` **só na versão desktop** (`hidden md:block`, mesmo breakpoint que a tabela já usa hoje) — a versão em cards do celular (`md:hidden`) continua exatamente como está em `orders/page.tsx`, não precisa mexer nela.
+  2. `orders/page.tsx`: trocar o bloco `<div className="mt-4 hidden overflow-x-auto md:block"><table>...</table></div>` por `<div className="mt-4 hidden md:block"><OrdersTable rows={rows} /></div>` (import `{ OrdersTable } from "@/components/admin/OrdersTable";`).
+- **Aceite**: `npm run build` passa; em telas ≥768px a lista de pedidos aparece como `DataTable` (com botão de ordenar no cabeçalho de Nome/Data e paginação se houver mais de 10 pedidos); em telas menores continua a versão em cards, sem mudança.
+- **Não fazer**: não mudar a query de `OrdersPage` nem `ExportCsvButton`. Não migrar a versão em cards (`md:hidden`) para `DataTable` — cards continuam como estão.
+
+---
+
 ## Decisões em aberto
 
 | # | Decisão | Bloqueia |
@@ -881,8 +977,6 @@ reescrita completa (API `useTable`/`createTableHook`, sem `useReactTable`/`getCo
 | 2 | Troca de senha pelo próprio usuário / "esqueci minha senha" | Não implementado nesta leva (TR1.7 nota isso) — hoje só o admin recria/reresetaria manualmente. Perguntar ao Cleberton se vale a pena numa fase futura. |
 | 3 | Relatório/histórico de faltas na catequese | Não implementado (TR3.6 só marca o dia). Perguntar se é necessário. |
 | 4 | Pendências do plano anterior (Fase 9 WebP, Fase 10 recorrência mensal, T11.1/T11.6/T11.7, Fase 12) | Continuam fora deste arquivo — ver nota no topo. |
-| 5 | Migrar as telas existentes (`EventForm.tsx`, `celebrants/page.tsx`, `orders/page.tsx`, os `<select>` de `users/page.tsx`/`catechesis/page.tsx`/`my-classes/page.tsx`) para os componentes de `src/components/ui/` | Fora do escopo da Fase UI de propósito — recomendo uma fase futura "Fase UI-migração", tela por tela, depois que a biblioteca estiver no ar e revisada. Misturar criação de componente com troca de 6+ telas no mesmo plano deixaria o `git diff` irrevisável. |
-| 6 | `Select` do Radix dentro de Server Action (`<form action={...}>`) | TUI.6 já resolve com um `<input type="hidden">` interno — só falta confirmar na prática, quando alguma tela migrar (item 5), que o valor chega certo no `FormData` do lado do servidor. |
 
 ---
 

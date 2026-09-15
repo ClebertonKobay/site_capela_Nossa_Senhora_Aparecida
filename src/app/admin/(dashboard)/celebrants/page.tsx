@@ -7,6 +7,7 @@ import { celebrations, fixedSchedules } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
 import { WEEKDAY_LABELS, addDays, dateOnlyUTC, toISODate, todayInSaoPaulo } from "@/lib/schedules";
+import { Button, Checkbox, Input } from "@/components/ui";
 
 type Slot = { date: string; time: string; weekday: number; description: string };
 
@@ -141,24 +142,20 @@ export default async function CelebrantsPage({
                     {WEEKDAY_LABELS[slot.weekday]}, {formatShortDate(slot.date)} — {slot.description}
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-3">
-                    <input
+                    <Input
                       type="text"
                       name={`celebrant-${slot.date}`}
                       list="celebrants-list"
                       placeholder="Nome do celebrante"
                       aria-label={`Nome do celebrante em ${WEEKDAY_LABELS[slot.weekday]}, ${formatShortDate(slot.date)}`}
                       defaultValue={existing?.celebrant ?? ""}
-                      className="field flex-1"
+                      className="flex-1"
                     />
-                    <label className="flex min-h-11 items-center gap-2 text-base">
-                      <input
-                        type="checkbox"
-                        name={`canceled-${slot.date}`}
-                        defaultChecked={existing?.canceled ?? false}
-                        className="h-5 w-5"
-                      />
-                      Cancelada
-                    </label>
+                    <Checkbox
+                      name={`canceled-${slot.date}`}
+                      defaultChecked={existing?.canceled ?? false}
+                      label="Cancelada"
+                    />
                   </div>
                 </div>
               );
@@ -166,12 +163,9 @@ export default async function CelebrantsPage({
           </div>
 
           <div className="sticky bottom-0 -mx-4 mt-6 border-t border-border bg-background px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
-            <button
-              type="submit"
-              className="btn btn-confirm w-full px-4 py-3 text-lg sm:w-auto"
-            >
+            <Button type="submit" className="w-full px-4 py-3 text-lg sm:w-auto">
               Salvar
-            </button>
+            </Button>
           </div>
         </form>
       )}

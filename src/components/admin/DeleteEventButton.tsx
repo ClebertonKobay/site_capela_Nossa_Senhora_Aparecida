@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui";
+
 export function DeleteEventButton({
   id,
   action,
@@ -17,9 +19,9 @@ export function DeleteEventButton({
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <button type="submit" className="btn btn-delete">
+      <Button type="submit" variant="cancel">
         Excluir
-      </button>
+      </Button>
     </form>
   );
 }

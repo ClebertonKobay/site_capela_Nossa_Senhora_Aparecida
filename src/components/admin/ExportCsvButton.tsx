@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui";
+
 type Row = {
   name: string;
   phone: string;
@@ -29,12 +31,12 @@ export function ExportCsvButton({ rows }: { rows: Row[] }) {
   }
 
   return (
-    <button
+    <Button
       type="button"
       onClick={handleExport}
-      className="btn btn-secondary"
+      variant="secondary"
     >
       Exportar CSV
-    </button>
+    </Button>
   );
 }

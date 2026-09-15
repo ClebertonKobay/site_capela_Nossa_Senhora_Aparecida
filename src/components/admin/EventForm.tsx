@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { buildCardOrderMessage } from "@/lib/order-message";
 import { isValidPhone, normalizePhone, whatsappLink } from "@/lib/phone";
+import { Button, Checkbox, Input } from "@/components/ui";
 
 export type EventFormValues = {
   id?: number;
@@ -52,19 +53,14 @@ export function EventForm({
     <form action={action} className="flex flex-col gap-4">
       {defaultValues?.id != null && <input type="hidden" name="id" value={defaultValues.id} />}
 
-      <div>
-        <label className={labelClass} htmlFor="name">
-          Nome da festa
-        </label>
-        <input
-          id="name"
-          name="name"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={inputClass}
-        />
-      </div>
+      <Input
+        label="Nome da festa"
+        id="name"
+        name="name"
+        required
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
 
       <div>
         <label className={labelClass} htmlFor="description">
@@ -81,83 +77,51 @@ export function EventForm({
 
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex-1">
-          <label className={labelClass} htmlFor="startAt">
-            Início
-          </label>
-          <input
+          <Input
+            label="Início"
             id="startAt"
             type="datetime-local"
             name="startAt"
             required
             defaultValue={defaultValues?.startAt}
-            className={inputClass}
           />
         </div>
         <div className="flex-1">
-          <label className={labelClass} htmlFor="endAt">
-            Fim (opcional)
-          </label>
-          <input
+          <Input
+            label="Fim (opcional)"
             id="endAt"
             type="datetime-local"
             name="endAt"
             defaultValue={defaultValues?.endAt}
-            className={inputClass}
           />
         </div>
       </div>
 
-      <div>
-        <label className={labelClass} htmlFor="location">
-          Local
-        </label>
-        <input id="location" name="location" defaultValue={defaultValues?.location} className={inputClass} />
-      </div>
+      <Input label="Local" id="location" name="location" defaultValue={defaultValues?.location} />
 
-      <div>
-        <label className={labelClass} htmlFor="whatsappPhone">
-          Telefone do WhatsApp
-        </label>
-        <input
-          id="whatsappPhone"
-          name="whatsappPhone"
-          required
-          placeholder="(42) 99999-8888"
-          value={phoneInput}
-          onChange={(e) => setPhoneInput(e.target.value)}
-          className={inputClass}
-        />
-      </div>
+      <Input
+        label="Telefone do WhatsApp"
+        id="whatsappPhone"
+        name="whatsappPhone"
+        required
+        placeholder="(42) 99999-8888"
+        value={phoneInput}
+        onChange={(e) => setPhoneInput(e.target.value)}
+      />
 
-      <div>
-        <label className={labelClass} htmlFor="cardPrice">
-          Preço da cartela (R$)
-        </label>
-        <input
-          id="cardPrice"
-          name="cardPrice"
-          inputMode="decimal"
-          placeholder="10,00"
-          value={priceInput}
-          onChange={(e) => setPriceInput(e.target.value)}
-          className={inputClass}
-        />
-      </div>
+      <Input
+        label="Preço da cartela (R$)"
+        id="cardPrice"
+        name="cardPrice"
+        inputMode="decimal"
+        placeholder="10,00"
+        value={priceInput}
+        onChange={(e) => setPriceInput(e.target.value)}
+      />
 
-      <label className="flex min-h-11 items-center gap-2 text-base">
-        <input
-          type="checkbox"
-          name="sellsCards"
-          defaultChecked={defaultValues?.sellsCards}
-          className="h-5 w-5"
-        />
-        Vende cartela?
-      </label>
+      <Checkbox name="sellsCards" defaultChecked={defaultValues?.sellsCards} label="Vende cartela?" />
 
-      <label className="flex min-h-11 items-center gap-2 text-base">
-        <input type="checkbox" name="featured" defaultChecked={defaultValues?.featured} className="h-5 w-5" />
-        Destacar na home?
-      </label>
+      <Checkbox name="featured" defaultChecked={defaultValues?.featured} label="Destacar na home?" />
 
       <div className="border-2 border-primary-light bg-primary/5 p-4">
         {phoneValid ? (
@@ -170,21 +134,17 @@ export function EventForm({
             Testar no WhatsApp
           </a>
         ) : (
-          <button
-            type="button"
-            disabled
-            className="btn btn-confirm"
-          >
+          <Button type="button" disabled>
             Testar no WhatsApp
-          </button>
+          </Button>
         )}
         <p className="mt-1 text-sm text-foreground/70">{phoneHint(normalizedPhone)}</p>
         <p className="mt-2 text-sm text-foreground/70 italic">&quot;{previewMessage}&quot;</p>
       </div>
 
-      <button type="submit" className="btn btn-confirm px-4 py-3 text-lg">
+      <Button type="submit" className="px-4 py-3 text-lg">
         Salvar
-      </button>
+      </Button>
     </form>
   );
 }

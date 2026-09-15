@@ -84,7 +84,7 @@ export default async function HomePage() {
         hero={
           <section
             id="inicio"
-            className="photo-vignette relative col-start-1 row-start-1 aspect-[4/3] w-full overflow-hidden sm:rounded-t-3xl"
+            className="photo-vignette relative col-start-1 row-start-1 aspect-4/3 w-full overflow-hidden sm:rounded-t-3xl"
           >
             <Image
               src={capelaPhoto}

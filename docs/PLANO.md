@@ -2,6 +2,9 @@
 
 Documento vivo. Marque as fases conforme terminar e edite o que mudar de ideia.
 
+> **Fases 0 a 7 concluídas.** A continuação (Fases 8 a 12) está em `.claude/PLANO-DETALHADO.md`.
+> Este arquivo fica como histórico do que foi construído e por quê.
+
 ---
 
 ## Fase 0 — Fundação

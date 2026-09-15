@@ -3,7 +3,10 @@
 Site da capela: horários de missas, eventos e venda de cartelas da festa via WhatsApp.
 Quem administra **não é desenvolvedor** — é a secretaria da paróquia. Toda decisão de UX do `/admin` parte disso.
 
-Roadmap e decisões em aberto: `docs/PLANO.md`.
+Plano ativo: `.claude/PLANO-DETALHADO.md` (Fases 8 a 12, com tarefas prontas para executar).
+Histórico das Fases 0 a 7 e decisões antigas: `docs/PLANO.md`.
+
+Para planejar, `/criar-plano`. Para executar, `/executar-plano`.
 
 ## Stack
 
@@ -75,6 +78,25 @@ Baseada no manto de Nossa Senhora Aparecida. Definida como tokens CSS em `src/ap
 | `accent` | `#D4A537` | Dourado — botão do WhatsApp, CTAs, badges de destaque |
 | `background` | `#F7F4EC` | Branco-céu — fundo geral |
 | `foreground` | `#1F2937` | Texto de corpo |
+| `primary-dark` | `#12294C` | Hover de botão escuro, header ativo |
+| `accent-dark` | `#8A6510` | Dourado legível como texto (nunca `accent` puro como cor de texto — reprova contraste) |
+| `surface` | `#FFFFFF` | Cartão branco explícito |
+| `surface-muted` | `#EFEADE` | Fundo de seção alternada |
+| `border` | `#1B3A6B1F` | Borda sutil padrão |
+| `danger` | `#9F1239` | Mensagem de erro |
+| `success` | `#14532D` | Mensagem de confirmação |
+
+### Sistema de UI
+
+Definido em `src/app/globals.css` (Tailwind v4, `@utility`), aplicado no site inteiro.
+
+- **Fonte**: Inter, via `--font-sans` (`src/app/layout.tsx`).
+- **Texto** (tamanho/peso, sem cor — cor é sempre `text-primary` etc. à parte): `text-display` (título de página), `text-title` (h2), `text-subtitle`, `text-body`, `text-caption`.
+- **Sombra**: `shadow-card` (cartão em repouso), `shadow-lifted` (elemento flutuante/destaque). Tom azul-manto, não cinza.
+- **Hover**: `hover-grow` (zoom sutil; use com `overflow-hidden` no pai).
+- **Botão**: sempre `btn` + uma variante — `btn-confirm` (ação primária/confirmação), `btn-delete` (excluir/cancelar), `btn-secondary` (ação secundária). `btn-icon` para SVG isolado (44×44px, hover muda só a cor).
+- **Campo de formulário**: `field` (input, select, textarea).
+- **Ícones**: `src/components/icons/` (`activity.tsx`, `social.tsx`) — SVG com `stroke="currentColor"`; a cor vem do `className` de texto de quem usa.
 
 ### Localização
 

@@ -151,3 +151,7 @@ vite.config.ts.timestamp-*
 .vite/
 
 .docs
+
+# Claude Code — o plano, as skills e os agentes vão pro repositório;
+# só a configuração local de permissões fica de fora.
+.claude/settings.local.json

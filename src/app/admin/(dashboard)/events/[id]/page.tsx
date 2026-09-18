@@ -18,7 +18,7 @@ export default async function EditEventPage({ params }: PageProps<"/admin/events
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-primary">Editar evento</h1>
+      <h1 className="text-title text-primary">Editar evento</h1>
       <div className="mt-4">
         <EventForm
           action={updateEvent}
@@ -30,6 +30,7 @@ export default async function EditEventPage({ params }: PageProps<"/admin/events
             endAt: event.endAt ? toSaoPauloDateTimeLocal(event.endAt) : "",
             location: event.location ?? "",
             whatsappPhone: event.whatsappPhone,
+            image: event.image ?? undefined,
             cardPrice: event.cardPrice != null ? (event.cardPrice / 100).toFixed(2) : "",
             sellsCards: event.sellsCards,
             featured: event.featured,

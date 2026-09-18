@@ -53,6 +53,7 @@ export async function createCatechumen(formData: FormData) {
   await db.insert(catechumens).values({ classId, ...data });
 
   revalidatePath("/admin/catechesis");
+  revalidatePath("/admin/my-classes");
 }
 
 export async function updateCatechumen(formData: FormData) {
@@ -66,6 +67,7 @@ export async function updateCatechumen(formData: FormData) {
   await db.update(catechumens).set(data).where(eq(catechumens.id, id));
 
   revalidatePath("/admin/catechesis");
+  revalidatePath("/admin/my-classes");
 }
 
 export async function toggleCatechumenActive(formData: FormData) {
@@ -79,4 +81,5 @@ export async function toggleCatechumenActive(formData: FormData) {
   await db.update(catechumens).set({ active }).where(eq(catechumens.id, id));
 
   revalidatePath("/admin/catechesis");
+  revalidatePath("/admin/my-classes");
 }

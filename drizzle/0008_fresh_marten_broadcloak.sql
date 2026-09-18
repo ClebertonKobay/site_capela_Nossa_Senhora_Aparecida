@@ -1,0 +1,1 @@
+ALTER TABLE "catechumens" ADD COLUMN "absences_count" integer DEFAULT 0 NOT NULL;

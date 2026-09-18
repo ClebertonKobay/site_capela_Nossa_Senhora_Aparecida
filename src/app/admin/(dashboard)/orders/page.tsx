@@ -32,7 +32,7 @@ export default async function OrdersPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary">Pedidos de cartela</h1>
+        <h1 className="text-title text-primary">Pedidos de cartela</h1>
         {rows.length > 0 && <ExportCsvButton rows={exportRows} />}
       </div>
 

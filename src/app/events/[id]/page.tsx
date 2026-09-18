@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -32,7 +33,11 @@ export async function generateMetadata({ params }: PageProps<"/events/[id]">): P
   return {
     title,
     description,
-    openGraph: { title, description },
+    openGraph: {
+      title,
+      description,
+      ...(event.image ? { images: [{ url: event.image }] } : {}),
+    },
   };
 }
 
@@ -55,6 +60,12 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
         </Link>
 
         <h1 className="mt-2 text-display text-primary">{event.name}</h1>
+
+        {event.image && (
+          <div className="photo-vignette relative mt-4 aspect-4/3 w-full overflow-hidden rounded-3xl shadow-card sm:aspect-16/9">
+            <Image src={event.image} alt={event.name} fill sizes="100vw" className="object-cover" priority />
+          </div>
+        )}
 
         <section className="mt-4 rounded-3xl bg-accent px-5 py-6 text-primary shadow-card">
           <p className="text-display leading-tight sm:text-4xl">{formatEventDateTime(event.startAt)}</p>

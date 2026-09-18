@@ -13,7 +13,7 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-sky-texture">
+    <div className="min-h-screen bg-water-texture">
       <div className="mx-2 mt-2 flex flex-col bg-background shadow-lifted sm:mx-4 sm:mt-4 sm:rounded-t-3xl lg:mx-auto lg:w-[90%] overflow-hidden">
         {hero ? (
           <div className="grid">
@@ -25,7 +25,7 @@ export function PageShell({
         ) : (
           <Header nav={nav} />
         )}
-        <main className="flex-1">{children}</main>
+        <main className={hero ? "flex-1" : "flex-1 pt-20"}>{children}</main>
         <Footer />
       </div>
     </div>

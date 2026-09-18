@@ -114,7 +114,7 @@ export default async function CelebrantsPage({
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-primary">Celebrantes do mês</h1>
+      <h1 className="text-title text-primary">Celebrantes do mês</h1>
 
       {saved && (
         <p className="mt-3 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-body font-semibold text-success">

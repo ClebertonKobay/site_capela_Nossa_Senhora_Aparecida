@@ -1,5 +1,6 @@
 "use server";
 
+import { put } from "@vercel/blob";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -10,6 +11,26 @@ import { events } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 import { parseCurrencyToCents, parseSaoPauloDateTime } from "@/lib/format";
 import { isValidPhone, normalizePhone } from "@/lib/phone";
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
+
+// undefined = nenhum arquivo novo enviado (mantém a imagem que já existia, se houver).
+// null = campo veio vazio (sem imagem).
+// string = URL nova, já hospedada no Vercel Blob.
+async function uploadEventImage(formData: FormData): Promise<string | null | undefined> {
+  const file = formData.get("image");
+  if (!(file instanceof File) || file.size === 0) return undefined;
+
+  if (!file.type.startsWith("image/")) {
+    throw new Error("O arquivo da foto precisa ser uma imagem.");
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new Error("A foto do evento precisa ter no máximo 5MB.");
+  }
+
+  const blob = await put(`events/${file.name}`, file, { access: "public" });
+  return blob.url;
+}
 
 const eventSchema = z.object({
   name: z.string().trim().min(1, "Nome é obrigatório"),
@@ -51,8 +72,9 @@ function parseEventForm(formData: FormData) {
 export async function createEvent(formData: FormData) {
   await requireRole(["admin", "chapel_coordinator"]);
   const data = parseEventForm(formData);
+  const image = await uploadEventImage(formData);
 
-  await db.insert(events).values(data);
+  await db.insert(events).values({ ...data, image: image ?? null });
 
   revalidatePath("/admin/events");
   revalidatePath("/");
@@ -66,8 +88,12 @@ export async function updateEvent(formData: FormData) {
   if (!Number.isInteger(id)) throw new Error("id inválido");
 
   const data = parseEventForm(formData);
+  const image = await uploadEventImage(formData);
 
-  await db.update(events).set(data).where(eq(events.id, id));
+  await db
+    .update(events)
+    .set(image === undefined ? data : { ...data, image })
+    .where(eq(events.id, id));
 
   revalidatePath("/admin/events");
   revalidatePath("/");

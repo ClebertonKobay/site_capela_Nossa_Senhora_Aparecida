@@ -4,9 +4,9 @@ import { db } from "@/db";
 import { catechismClasses, catechumens, users } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 import { formatTime } from "@/lib/format";
-import { formatPhone } from "@/lib/phone";
 import { WEEKDAY_LABELS } from "@/lib/schedules";
-import { Button, Input } from "@/components/ui";
+import { Button, IconButton, Input, Popover, Tabs } from "@/components/ui";
+import { CatechumensTable, type CatechumenRow } from "@/components/admin/CatechumensTable";
 
 import { assignCatechist, createClass, toggleClassActive } from "./classes-actions";
 import { createCatechumen } from "./catechumens-actions";
@@ -23,132 +23,175 @@ export default async function CatechesisPage() {
       .from(users)
       .where(eq(users.role, "catechist"))
       .orderBy(users.name),
-    db.select().from(catechumens).where(eq(catechumens.active, true)),
+    db.select().from(catechumens),
   ]);
 
-  const catechumensByClass = new Map<number, typeof allCatechumens>();
+  const classNameById = new Map<number, string>();
+  for (const turma of classes) {
+    classNameById.set(turma.id, turma.name);
+  }
+
+  const rowsByClass = new Map<number, CatechumenRow[]>();
+  const allRows: CatechumenRow[] = [];
   for (const catechumen of allCatechumens) {
-    const list = catechumensByClass.get(catechumen.classId) ?? [];
-    list.push(catechumen);
-    catechumensByClass.set(catechumen.classId, list);
+    const row: CatechumenRow = {
+      id: catechumen.id,
+      name: catechumen.name,
+      guardianName: catechumen.guardianName,
+      guardianPhone: catechumen.guardianPhone,
+      absencesCount: catechumen.absencesCount,
+      active: catechumen.active,
+      className: classNameById.get(catechumen.classId) ?? "—",
+    };
+    const list = rowsByClass.get(catechumen.classId) ?? [];
+    list.push(row);
+    rowsByClass.set(catechumen.classId, list);
+    allRows.push(row);
   }
 
   return (
     <div>
-      <h1 className="text-title text-primary">Catequese</h1>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-title text-primary">Catequese</h1>
 
-      <ul className="mt-6 flex flex-col gap-6">
-        {classes.length === 0 && (
-          <p className="text-body text-foreground/70">Nenhuma turma cadastrada ainda.</p>
-        )}
-        {classes.map((turma) => {
-          const turmaCatechumens = catechumensByClass.get(turma.id) ?? [];
-
-          return (
-            <li
-              key={turma.id}
-              className="flex flex-col gap-3 border-l-4 border-primary-light pl-3"
-            >
-              <div>
-                <p className="text-body font-semibold text-foreground">
-                  {turma.name}
-                  {!turma.active && (
-                    <span className="ml-2 text-caption text-foreground/60">(inativa)</span>
-                  )}
-                </p>
-                <p className="text-body text-foreground/70">
-                  {WEEKDAY_LABELS[turma.weekday]} às {formatTime(turma.time)}
-                </p>
-              </div>
-
-              <form action={assignCatechist} className="flex flex-wrap items-center gap-2">
-                <AssignCatechistSelect
-                  classId={turma.id}
-                  defaultCatechistId={turma.catechistId}
-                  catechists={catechists}
-                />
-                <Button type="submit" variant="secondary">
-                  Atribuir
-                </Button>
-              </form>
-
-              <form action={toggleClassActive}>
-                <input type="hidden" name="id" value={turma.id} />
-                <input type="hidden" name="active" value={turma.active ? "false" : "true"} />
-                <Button type="submit" variant={turma.active ? "cancel" : "secondary"}>
-                  {turma.active ? "Desativar" : "Ativar"}
-                </Button>
-              </form>
-
-              <div>
-                <p className="text-body font-semibold text-foreground">Catequizandos</p>
-                {turmaCatechumens.length === 0 ? (
-                  <p className="text-body text-foreground/70">Nenhum catequizando ativo.</p>
-                ) : (
-                  <ul className="mt-1 flex flex-col gap-1">
-                    {turmaCatechumens.map((catechumen) => (
-                      <li key={catechumen.id} className="text-body text-foreground/70">
-                        {catechumen.name}
-                        {catechumen.guardianPhone && (
-                          <> — {formatPhone(catechumen.guardianPhone)}</>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <form
-                action={createCatechumen}
-                className="flex flex-wrap items-end gap-2"
+        <Popover
+          trigger={
+            <button type="button" className="btn btn-confirm">
+              <svg
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                fill="none"
+                className="h-5 w-5"
               >
-                <input type="hidden" name="classId" value={turma.id} />
-                <div>
-                  <Input
-                    id={`catechumen-name-${turma.id}`}
-                    type="text"
-                    name="name"
-                    required
-                    label="Nome"
-                  />
-                </div>
-                <div>
-                  <Input
-                    id={`guardian-name-${turma.id}`}
-                    type="text"
-                    name="guardianName"
-                    label="Responsável"
-                  />
-                </div>
-                <div>
-                  <Input
-                    id={`guardian-phone-${turma.id}`}
-                    type="text"
-                    name="guardianPhone"
-                    placeholder="(42) 99999-8888"
-                    label="Telefone do responsável"
-                  />
-                </div>
-                <Button type="submit">Adicionar</Button>
-              </form>
-            </li>
-          );
-        })}
-      </ul>
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              </svg>
+              Nova turma
+            </button>
+          }
+        >
+          <form action={createClass} className="flex w-64 flex-col gap-4">
+            <Input id="name" type="text" name="name" required label="Nome" />
+            <WeekdaySelect />
+            <Input id="time" type="time" name="time" required label="Horário" />
+            <Button type="submit">Criar turma</Button>
+          </form>
+        </Popover>
+      </div>
 
-      <form action={createClass} className="mt-8 flex max-w-md flex-col gap-4">
-        <h2 className="text-subtitle text-primary">Nova turma</h2>
-        <div>
-          <Input id="name" type="text" name="name" required label="Nome" />
-        </div>
-        <div>
-          <WeekdaySelect />
-        </div>
-        <div>
-          <Input id="time" type="time" name="time" required label="Horário" />
-        </div>
-        <Button type="submit">Criar turma</Button>
-      </form>
+      {classes.length === 0 ? (
+        <p className="mt-6 text-body text-foreground/70">Nenhuma turma cadastrada ainda.</p>
+      ) : (
+        <Tabs
+          className="mt-6"
+          ariaLabel="Turmas"
+          items={[
+            ...classes.map((turma) => ({
+              value: `turma-${turma.id}`,
+              label: turma.active ? turma.name : `${turma.name} (inativa)`,
+              content: (
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-body text-foreground/70">
+                      {WEEKDAY_LABELS[turma.weekday]} às {formatTime(turma.time)}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Popover
+                        trigger={
+                          <IconButton aria-label={`Atribuir catequista à turma ${turma.name}`}>
+                            <svg
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="1.75"
+                              fill="none"
+                            >
+                              <circle cx="12" cy="8" r="4" />
+                              <path d="M4 20c0-4 4-6 8-6s8 2 8 6" strokeLinecap="round" />
+                            </svg>
+                          </IconButton>
+                        }
+                      >
+                        <form action={assignCatechist} className="flex w-64 flex-col gap-3">
+                          <AssignCatechistSelect
+                            classId={turma.id}
+                            defaultCatechistId={turma.catechistId}
+                            catechists={catechists}
+                          />
+                          <Button type="submit" variant="secondary">
+                            Atribuir
+                          </Button>
+                        </form>
+                      </Popover>
+
+                      <form action={toggleClassActive}>
+                        <input type="hidden" name="id" value={turma.id} />
+                        <input
+                          type="hidden"
+                          name="active"
+                          value={turma.active ? "false" : "true"}
+                        />
+                        <Button type="submit" variant={turma.active ? "cancel" : "secondary"}>
+                          {turma.active ? "Desativar" : "Ativar"}
+                        </Button>
+                      </form>
+
+                      <Popover
+                        trigger={
+                          <button type="button" className="btn btn-secondary">
+                            <svg
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="1.75"
+                              fill="none"
+                              className="h-5 w-5"
+                            >
+                              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                            </svg>
+                            Catequizando
+                          </button>
+                        }
+                      >
+                        <form action={createCatechumen} className="flex w-64 flex-col gap-3">
+                          <input type="hidden" name="classId" value={turma.id} />
+                          <Input
+                            id={`catechumen-name-${turma.id}`}
+                            type="text"
+                            name="name"
+                            required
+                            label="Nome"
+                          />
+                          <Input
+                            id={`guardian-name-${turma.id}`}
+                            type="text"
+                            name="guardianName"
+                            label="Responsável"
+                          />
+                          <Input
+                            id={`guardian-phone-${turma.id}`}
+                            type="text"
+                            name="guardianPhone"
+                            placeholder="(42) 99999-8888"
+                            label="Telefone do responsável"
+                          />
+                          <Button type="submit">Adicionar</Button>
+                        </form>
+                      </Popover>
+                    </div>
+                  </div>
+
+                  <CatechumensTable rows={rowsByClass.get(turma.id) ?? []} mode="manage" />
+                </div>
+              ),
+            })),
+            {
+              value: "todos",
+              label: "Todos",
+              content: <CatechumensTable rows={allRows} mode="manage" searchable showClassColumn />,
+            },
+          ]}
+        />
+      )}
     </div>
   );
 }

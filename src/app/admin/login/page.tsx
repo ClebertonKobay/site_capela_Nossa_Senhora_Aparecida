@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center bg-sky px-4 py-10">
+    <main className="flex flex-1 flex-col items-center justify-center bg-water-texture px-4 py-10">
       <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-3xl bg-background p-6 shadow-lifted">
         <h1 className="text-title text-primary">Painel da Capela</h1>
         <label htmlFor="username" className="mt-4 block text-base font-semibold text-primary">

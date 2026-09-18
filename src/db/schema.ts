@@ -56,6 +56,7 @@ export const events = pgTable("events", {
   endAt: timestamp("end_at", { withTimezone: true }),
   location: text("location"),
   whatsappPhone: text("whatsapp_phone").notNull(), // só dígitos, com DDI
+  image: text("image"), // URL pública no Vercel Blob
   cardPrice: integer("card_price"), // em centavos
   sellsCards: boolean("sells_cards").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
@@ -130,6 +131,7 @@ export const catechumens = pgTable("catechumens", {
   guardianName: text("guardian_name"),
   guardianPhone: text("guardian_phone"),
   active: boolean("active").notNull().default(true),
+  absencesCount: integer("absences_count").notNull().default(0),
 });
 
 export const catechismAttendance = pgTable(

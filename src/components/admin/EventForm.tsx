@@ -14,6 +14,7 @@ export type EventFormValues = {
   endAt?: string;
   location?: string;
   whatsappPhone?: string;
+  image?: string;
   cardPrice?: string;
   sellsCards?: boolean;
   featured?: boolean;
@@ -98,6 +99,20 @@ export function EventForm({
       </div>
 
       <Input label="Local" id="location" name="location" defaultValue={defaultValues?.location} />
+
+      <div>
+        <label className={labelClass} htmlFor="image">
+          Foto do evento (opcional)
+        </label>
+        <input type="file" id="image" name="image" accept="image/*" className={inputClass} />
+        {defaultValues?.image ? (
+          <p className="mt-1 text-sm text-foreground/70">
+            Já existe uma foto salva — escolha um novo arquivo só se quiser trocar.
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-foreground/70">JPG ou PNG, até 5MB.</p>
+        )}
+      </div>
 
       <Input
         label="Telefone do WhatsApp"

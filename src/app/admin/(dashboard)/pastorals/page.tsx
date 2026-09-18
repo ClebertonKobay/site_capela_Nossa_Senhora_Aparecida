@@ -4,10 +4,10 @@ import { db } from "@/db";
 import { pastoralMembers, pastorals, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireRole } from "@/lib/auth";
-import { formatPhone } from "@/lib/phone";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Popover } from "@/components/ui";
+import { PastoralMembersTable } from "@/components/admin/PastoralMembersTable";
 
-import { createPastoralMember, toggleMemberActive, updatePastoralMember } from "./actions";
+import { createPastoralMember } from "./actions";
 
 export default async function PastoralsPage({
   searchParams,
@@ -92,85 +92,48 @@ export default async function PastoralsPage({
         </div>
       )}
 
-      <h1 className="mt-4 text-title text-primary">Membros — {pastoral.name}</h1>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-title text-primary">Membros — {pastoral.name}</h1>
 
-      <ul className="mt-6 flex flex-col gap-4">
-        {members.length === 0 && (
-          <p className="text-body text-foreground/70">Nenhum membro cadastrado ainda.</p>
-        )}
-        {members.map((member) => (
-          <li
-            key={member.id}
-            className="flex flex-col gap-3 border-l-4 border-primary-light pl-3"
-          >
-            <div>
-              <p className="text-body font-semibold text-foreground">
-                {member.name}
-                {!member.active && (
-                  <span className="ml-2 text-caption text-foreground/60">(inativo)</span>
-                )}
-              </p>
-              {member.phone && (
-                <p className="text-body text-foreground/70">{formatPhone(member.phone)}</p>
-              )}
-              {member.notes && <p className="text-body text-foreground/70">{member.notes}</p>}
-            </div>
+        <Popover
+          trigger={
+            <button type="button" className="btn btn-confirm">
+              <svg
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                fill="none"
+                className="h-5 w-5"
+              >
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              </svg>
+              Novo membro
+            </button>
+          }
+        >
+          <form action={createPastoralMember} className="flex w-64 flex-col gap-4">
+            <Input label="Nome" id="name" type="text" name="name" required />
+            <Input
+              label="Telefone"
+              id="phone"
+              type="text"
+              name="phone"
+              placeholder="(42) 99999-8888"
+            />
+            <Input label="Notas" id="notes" type="text" name="notes" />
+            <input type="hidden" name="pastoralId" value={pastoralId} />
+            <Button type="submit">Adicionar membro</Button>
+          </form>
+        </Popover>
+      </div>
 
-            <form action={updatePastoralMember} className="flex flex-wrap items-center gap-2">
-              <input type="hidden" name="id" value={member.id} />
-              <input type="hidden" name="pastoralId" value={pastoralId} />
-              <Input
-                type="text"
-                name="name"
-                defaultValue={member.name}
-                required
-                aria-label={`Nome de ${member.name}`}
-              />
-              <Input
-                type="text"
-                name="phone"
-                defaultValue={member.phone ? formatPhone(member.phone) : ""}
-                placeholder="(42) 99999-8888"
-                aria-label={`Telefone de ${member.name}`}
-              />
-              <Input
-                type="text"
-                name="notes"
-                defaultValue={member.notes ?? ""}
-                placeholder="Notas"
-                aria-label={`Notas de ${member.name}`}
-              />
-              <Button type="submit" variant="secondary">
-                Salvar
-              </Button>
-            </form>
-
-            <form action={toggleMemberActive}>
-              <input type="hidden" name="id" value={member.id} />
-              <input type="hidden" name="pastoralId" value={pastoralId} />
-              <input type="hidden" name="active" value={member.active ? "false" : "true"} />
-              <Button type="submit" variant={member.active ? "cancel" : "secondary"}>
-                {member.active ? "Desativar" : "Ativar"}
-              </Button>
-            </form>
-          </li>
-        ))}
-      </ul>
-
-      <form action={createPastoralMember} className="mt-8 flex max-w-md flex-col gap-4">
-        <h2 className="text-subtitle text-primary">Novo membro</h2>
-        <Input label="Nome" id="name" type="text" name="name" required />
-        <Input
-          label="Telefone"
-          id="phone"
-          type="text"
-          name="phone"
-          placeholder="(42) 99999-8888"
-        />
-        <Input label="Notas" id="notes" type="text" name="notes" />
-        <input type="hidden" name="pastoralId" value={pastoralId} />
-        <Button type="submit">Adicionar membro</Button>
-      </form>
+      {members.length === 0 ? (
+        <p className="mt-6 text-body text-foreground/70">Nenhum membro cadastrado ainda.</p>
+      ) : (
+        <div className="mt-6">
+          <PastoralMembersTable rows={members} pastoralId={pastoralId} />
+        </div>
+      )}
     </div>
   );
 }

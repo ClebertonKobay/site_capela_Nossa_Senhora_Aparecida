@@ -1,25 +1,15 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
-import { catechismAttendance, catechismClasses, catechumens } from "@/db/schema";
+import { catechismClasses, catechumens } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 import { formatTime } from "@/lib/format";
 import { WEEKDAY_LABELS } from "@/lib/schedules";
-import { Button, Checkbox, Input } from "@/components/ui";
+import { Tabs } from "@/components/ui";
+import { CatechumensTable, type CatechumenRow } from "@/components/admin/CatechumensTable";
 
-import { saveAttendance } from "./attendance-actions";
-
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
-export default async function MyClassesPage({
-  searchParams,
-}: PageProps<"/admin/my-classes">) {
+export default async function MyClassesPage() {
   const session = await requireRole(["admin", "catechesis_coordinator", "catechist"]);
-
-  const { date: rawDate } = await searchParams;
-  const dateValue = Array.isArray(rawDate) ? rawDate[0] : rawDate;
-  const date =
-    dateValue && DATE_REGEX.test(dateValue) ? dateValue : new Date().toISOString().slice(0, 10);
 
   const classes =
     session.role === "catechist"
@@ -46,75 +36,60 @@ export default async function MyClassesPage({
   }
 
   const classIds = classes.map((c) => c.id);
+  const allCatechumens = await db
+    .select()
+    .from(catechumens)
+    .where(and(inArray(catechumens.classId, classIds), eq(catechumens.active, true)));
 
-  const [allCatechumens, allAttendance] = await Promise.all([
-    db
-      .select()
-      .from(catechumens)
-      .where(and(inArray(catechumens.classId, classIds), eq(catechumens.active, true))),
-    db
-      .select()
-      .from(catechismAttendance)
-      .where(and(inArray(catechismAttendance.classId, classIds), eq(catechismAttendance.date, date))),
-  ]);
+  const classNameById = new Map<number, string>();
+  for (const turma of classes) {
+    classNameById.set(turma.id, turma.name);
+  }
+
+  const rowsByClass = new Map<number, CatechumenRow[]>();
+  const allRows: CatechumenRow[] = [];
+  for (const catechumen of allCatechumens) {
+    const row: CatechumenRow = {
+      id: catechumen.id,
+      name: catechumen.name,
+      guardianName: catechumen.guardianName,
+      guardianPhone: catechumen.guardianPhone,
+      absencesCount: catechumen.absencesCount,
+      active: catechumen.active,
+      className: classNameById.get(catechumen.classId) ?? "—",
+    };
+    const list = rowsByClass.get(catechumen.classId) ?? [];
+    list.push(row);
+    rowsByClass.set(catechumen.classId, list);
+    allRows.push(row);
+  }
+
+  const tabItems = [
+    ...classes.map((turma) => ({
+      value: `turma-${turma.id}`,
+      label: turma.name,
+      content: (
+        <div className="flex flex-col gap-4">
+          <p className="text-body text-foreground/70">
+            {WEEKDAY_LABELS[turma.weekday]} às {formatTime(turma.time)}
+          </p>
+          <CatechumensTable rows={rowsByClass.get(turma.id) ?? []} mode="absences" />
+        </div>
+      ),
+    })),
+    {
+      value: "todos",
+      label: "Todos",
+      content: <CatechumensTable rows={allRows} mode="absences" searchable showClassColumn />,
+    },
+  ];
 
   return (
     <div>
       <h1 className="text-title text-primary">Minhas Turmas</h1>
 
-      <form method="get" className="mt-4 flex flex-wrap items-end gap-2">
-        <Input type="date" label="Data" id="date" name="date" defaultValue={date} />
-        <Button type="submit" variant="secondary">
-          Ver
-        </Button>
-      </form>
-
-      <div className="mt-8 flex flex-col gap-8">
-        {classes.map((turma) => {
-          const classCatechumens = allCatechumens.filter((c) => c.classId === turma.id);
-          const attendanceOfClass = allAttendance.filter((a) => a.classId === turma.id);
-
-          return (
-            <section key={turma.id} className="border-l-4 border-primary-light pl-3">
-              <h2 className="text-subtitle text-primary">{turma.name}</h2>
-              <p className="text-body text-foreground/70">
-                {WEEKDAY_LABELS[turma.weekday]} às {formatTime(turma.time)}
-              </p>
-
-              {classCatechumens.length === 0 ? (
-                <p className="mt-2 text-body text-foreground/70">
-                  Nenhum catequizando cadastrado nesta turma.
-                </p>
-              ) : (
-                <form action={saveAttendance} className="mt-4 flex flex-col gap-2">
-                  <input type="hidden" name="classId" value={turma.id} />
-                  <input type="hidden" name="date" value={date} />
-                  <input
-                    type="hidden"
-                    name="catechumenIds"
-                    value={JSON.stringify(classCatechumens.map((c) => c.id))}
-                  />
-
-                  {classCatechumens.map((catechumen) => {
-                    const existing = attendanceOfClass.find((a) => a.catechumenId === catechumen.id);
-                    return (
-                      <Checkbox
-                        key={catechumen.id}
-                        name={`present-${catechumen.id}`}
-                        defaultChecked={existing?.present ?? false}
-                        label={catechumen.name}
-                      />
-                    );
-                  })}
-
-                  <Button type="submit" className="mt-2 self-start">
-                    Salvar presença
-                  </Button>
-                </form>
-              )}
-            </section>
-          );
-        })}
+      <div className="mt-8">
+        <Tabs ariaLabel="Turmas" items={tabItems} />
       </div>
     </div>
   );

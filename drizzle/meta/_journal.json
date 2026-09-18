@@ -57,6 +57,20 @@
       "when": 1789487786024,
       "tag": "0007_faithful_doctor_spectrum",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789528103253,
+      "tag": "0008_fresh_marten_broadcloak",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789690785853,
+      "tag": "0009_glamorous_mauler",
+      "breakpoints": true
     }
   ]
 }

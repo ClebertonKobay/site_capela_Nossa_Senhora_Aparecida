@@ -14,7 +14,7 @@ export default async function EventsListPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary">Eventos</h1>
+        <h1 className="text-title text-primary">Eventos</h1>
         <Link
           href="/admin/events/new"
           className="btn btn-confirm"

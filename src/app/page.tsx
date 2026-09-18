@@ -38,7 +38,7 @@ import {
 const YOUTH_GROUP_SCHEDULE_LABEL = "2º sábado do mês · 18h";
 
 const ABOUT_TEXT =
-  "A Capela Nossa Senhora Aparecida é um espaço de fé, acolhida e comunidade no bairro Boa Vista, em Ponta Grossa. Aqui celebramos a Santa Missa, rezamos juntos e cuidamos da formação de crianças, jovens e adultos na caminhada da fé — sempre sob o olhar de Nossa Senhora Aparecida, padroeira do Brasil.";
+  "A Capela Nossa Senhora Aparecida é um espaço de fé, acolhida e comunidade no bairro Boa Vista, em Ponta Grossa. Aqui celebramos a Santa Missa, rezamos juntos e cuidamos da formação de crianças, jovens e adultos na caminhada da fé — sempre sob o olhar de Nossa Senhora Aparecida.";
 
 export const revalidate = 300;
 
@@ -88,7 +88,7 @@ export default async function HomePage() {
             />
             <div
               aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary-dark/60 to-primary-dark/10"
+              className="absolute inset-0 bg-linear-to-t from-primary-dark via-primary-dark/40 to-transparent"
             />
             <div className="relative z-10 grid w-full items-end gap-8 px-4 pb-12 sm:px-6 md:grid-cols-[minmax(0,1fr)_22rem] md:pb-16">
               <div className="text-center md:text-left">
@@ -145,7 +145,7 @@ export default async function HomePage() {
             </div>
           )}
 
-          <WaveDivider className="mt-6" />
+          <WaveDivider className="text-[#152F57] "  />
 
           <section id="capela" className="scroll-mt-24 px-4 py-10">
             <div className="grid gap-6 md:grid-cols-[1.08fr_0.92fr] md:items-center md:gap-10">
@@ -236,8 +236,6 @@ export default async function HomePage() {
               <CarouselNext className="right-2 sm:-right-4" />
             </Carousel>
           </section>
-
-          <WaveDivider className="mt-6" />
 
           <section id="horarios" className="scroll-mt-24 px-4 py-8">
             <h2 className="text-title text-primary">Horários da semana</h2>

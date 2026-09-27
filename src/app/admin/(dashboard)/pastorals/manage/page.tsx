@@ -3,7 +3,8 @@ import Link from "next/link";
 import { db } from "@/db";
 import { pastorals } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
-import { Button, IconButton, Input, Popover } from "@/components/ui";
+import { Button, IconButton, Input, PageHeader, Panel, Popover } from "@/components/ui";
+import { PencilIcon, PlusIcon } from "@/components/icons";
 
 import { createPastoral, renamePastoral } from "./actions";
 
@@ -17,68 +18,65 @@ export default async function PastoralsManagePage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-title text-primary">Pastorais</h1>
-
-        <Popover
-          trigger={
-            <button type="button" className="btn btn-confirm">
-              <svg
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                fill="none"
-                className="h-5 w-5"
-              >
-                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-              </svg>
-              Nova pastoral
-            </button>
-          }
-        >
-          <form action={createPastoral} className="flex w-64 flex-col gap-4">
-            <Input label="Nova pastoral" id="name" type="text" name="name" required />
-            <Button type="submit">Criar pastoral</Button>
-          </form>
-        </Popover>
-      </div>
-
-      <ul className="mt-8 flex flex-col gap-4">
-        {allPastorals.map((pastoral) => (
-          <li
-            key={pastoral.id}
-            className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-primary-light pl-3"
+      <PageHeader
+        title="Pastorais"
+        description="Escolha uma pastoral para ver e cadastrar os membros."
+        actions={
+          <Popover
+            title="Nova pastoral"
+            align="end"
+            trigger={
+              <button type="button" className="btn btn-confirm">
+                <PlusIcon />
+                Nova pastoral
+              </button>
+            }
           >
-            <Link
-              href={`/admin/pastorals?pastoralId=${pastoral.id}`}
-              className="font-semibold text-primary"
-            >
-              {pastoral.name}
-            </Link>
-            <Popover
-              trigger={
-                <IconButton aria-label={`Renomear ${pastoral.name}`}>
-                  <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none">
-                    <path
-                      d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </IconButton>
-              }
-            >
-              <form action={renamePastoral} className="flex w-64 flex-col gap-3">
-                <input type="hidden" name="id" value={pastoral.id} />
-                <Input type="text" name="name" defaultValue={pastoral.name} required />
-                <Button type="submit" variant="secondary">
-                  Salvar
-                </Button>
-              </form>
-            </Popover>
-          </li>
-        ))}
-      </ul>
+            <form action={createPastoral} className="flex w-full flex-col gap-4">
+              <Input label="Nome da pastoral" id="name" type="text" name="name" required />
+              <Button type="submit">Criar pastoral</Button>
+            </form>
+          </Popover>
+        }
+      />
+
+      <Panel>
+        {allPastorals.length === 0 ? (
+          <p className="px-4 py-10 text-center text-body text-foreground/70 sm:px-5">
+            Nenhuma pastoral cadastrada ainda. Use “Nova pastoral” para criar a primeira.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {allPastorals.map((pastoral) => (
+              <li key={pastoral.id} className="flex items-center gap-2 py-1.5 pr-2 pl-4 sm:pl-5">
+                <Link
+                  href={`/admin/pastorals?pastoralId=${pastoral.id}`}
+                  className="flex min-h-11 min-w-0 flex-1 items-center font-semibold text-primary hover:text-primary-light"
+                >
+                  <span className="truncate">{pastoral.name}</span>
+                </Link>
+                <Popover
+                  title={`Renomear ${pastoral.name}`}
+                  align="end"
+                  trigger={
+                    <IconButton aria-label={`Renomear ${pastoral.name}`} title="Renomear">
+                      <PencilIcon />
+                    </IconButton>
+                  }
+                >
+                  <form action={renamePastoral} className="flex w-full flex-col gap-3">
+                    <input type="hidden" name="id" value={pastoral.id} />
+                    <Input type="text" name="name" defaultValue={pastoral.name} required aria-label="Nome da pastoral" />
+                    <Button type="submit" variant="secondary">
+                      Salvar
+                    </Button>
+                  </form>
+                </Popover>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
     </div>
   );
 }

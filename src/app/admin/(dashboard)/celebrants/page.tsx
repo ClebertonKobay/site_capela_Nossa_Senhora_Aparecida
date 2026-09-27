@@ -7,7 +7,7 @@ import { celebrations, fixedSchedules } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
 import { WEEKDAY_LABELS, addDays, dateOnlyUTC, toISODate, todayInSaoPaulo } from "@/lib/schedules";
-import { Button, Checkbox, Input } from "@/components/ui";
+import { Button, Checkbox, Input, PageHeader } from "@/components/ui";
 
 type Slot = { date: string; time: string; weekday: number; description: string };
 
@@ -114,18 +114,21 @@ export default async function CelebrantsPage({
 
   return (
     <div>
-      <h1 className="text-title text-primary">Celebrantes do mês</h1>
+      <PageHeader
+        title="Celebrantes do mês"
+        description="Quem celebra cada missa daqui até o fim do mês. Marque as missas canceladas."
+      />
 
       {saved && (
-        <p className="mt-3 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-body font-semibold text-success">
+        <p className="mb-4 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-body font-semibold text-success">
           Salvo com sucesso!
         </p>
       )}
 
       {slots.length === 0 ? (
-        <p className="mt-4 text-base text-foreground/70">Nenhuma missa fixa cadastrada.</p>
+        <p className="text-base text-foreground/70">Nenhuma missa fixa cadastrada.</p>
       ) : (
-        <form action={saveCelebrants} className="mt-4">
+        <form action={saveCelebrants}>
           <input type="hidden" name="slots" value={JSON.stringify(slots.map(({ date, time }) => ({ date, time })))} />
           <datalist id="celebrants-list">
             {celebrantNames.map(

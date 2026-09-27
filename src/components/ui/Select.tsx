@@ -28,8 +28,8 @@ export function Select({
       <RadixSelect.Root value={value} onValueChange={onValueChange}>
         <RadixSelect.Trigger className={cn("field flex items-center justify-between", label && "mt-1", className)}>
           <RadixSelect.Value placeholder={placeholder} />
-          <RadixSelect.Icon>
-            <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none">
+          <RadixSelect.Icon className="shrink-0 text-foreground/60">
+            <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none" className="h-4 w-4">
               <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </RadixSelect.Icon>

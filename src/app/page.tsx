@@ -11,7 +11,14 @@ import { db } from "@/db";
 import { events } from "@/db/schema";
 import { EventCard } from "@/components/EventCard";
 import { WaveDivider } from "@/components/WaveDivider";
-import { ACTIVITY_ICONS } from "@/components/icons";
+import {
+  ACTIVITY_ICONS,
+  CatechismIcon,
+  ChevronRightIcon,
+  MassIcon,
+  PrayerGroupIcon,
+  YouthGroupIcon,
+} from "@/components/icons";
 import { MinistryCard } from "@/components/MinistryCard";
 import { PageShell } from "@/components/PageShell";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui";
@@ -33,6 +40,8 @@ import {
   getNextMass,
   getWeekSchedule,
   isPatronessFeastWindow,
+  todayInSaoPaulo,
+  type ScheduleOccurrence,
 } from "@/lib/schedules";
 
 const YOUTH_GROUP_SCHEDULE_LABEL = "2º sábado do mês · 18h";
@@ -41,6 +50,74 @@ const ABOUT_TEXT =
   "A Capela Nossa Senhora Aparecida é um espaço de fé, acolhida e comunidade no bairro Boa Vista, em Ponta Grossa. Aqui celebramos a Santa Missa, rezamos juntos e cuidamos da formação de crianças, jovens e adultos na caminhada da fé — sempre sob o olhar de Nossa Senhora Aparecida.";
 
 export const revalidate = 300;
+
+const WEEKDAY_SHORT = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+const MONTH_SHORT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+// "Hoje" / "Amanhã" — quem abre no pátio quer saber se é hoje, sem fazer conta.
+function relativeDayLabel(isoDate: string): string | null {
+  const today = todayInSaoPaulo();
+  const [year, month, day] = isoDate.split("-").map(Number);
+  const diff = Math.round(
+    (Date.UTC(year, month - 1, day) - Date.UTC(today.year, today.month - 1, today.day)) / 86_400_000,
+  );
+  if (diff === 0) return "Hoje";
+  if (diff === 1) return "Amanhã";
+  return null;
+}
+
+// Card da próxima missa em forma de folhinha de calendário: a coluna dourada
+// é a data, o horário grande ao lado é o que se procura primeiro.
+function NextMassCard({ mass }: { mass: ScheduleOccurrence }) {
+  const [, month, day] = mass.date.split("-").map(Number);
+  const relative = relativeDayLabel(mass.date);
+
+  return (
+    <aside
+      aria-label="Próxima Santa Missa"
+      className="overflow-hidden rounded-2xl bg-primary-dark/85 text-left text-white shadow-lifted ring-1 ring-white/10 backdrop-blur-md"
+    >
+      <div className="flex">
+        <div className="flex w-24 shrink-0 flex-col items-center justify-center bg-accent py-5 text-primary-dark">
+          <span className="text-body font-semibold">{WEEKDAY_SHORT[mass.weekday]}</span>
+          <span className="text-5xl leading-none font-bold tabular-nums">{String(day).padStart(2, "0")}</span>
+          <span className="text-body">{MONTH_SHORT[month - 1]}</span>
+        </div>
+
+        <div className="min-w-0 flex-1 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-body font-semibold text-accent">Próxima Santa Missa</h2>
+            {relative && (
+              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-caption font-semibold">{relative}</span>
+            )}
+          </div>
+          <p className="mt-1 text-6xl leading-none font-bold tabular-nums">{formatTime(mass.time)}</p>
+          <p className="mt-3 flex items-center gap-2 text-body text-white/85">
+            <MassIcon className="h-[1.125rem] w-[1.125rem] shrink-0 text-accent" />
+            <span className="truncate">
+              {mass.celebrant ? mass.celebrant : "Celebrante a definir"}
+            </span>
+          </p>
+          <p className="sr-only">
+            {WEEKDAY_LABELS[mass.weekday]}, {formatShortDate(mass.date)}
+          </p>
+        </div>
+      </div>
+
+      {mass.note && (
+        <p className="border-t border-white/10 px-5 py-2.5 text-body text-white/80 italic">{mass.note}</p>
+      )}
+
+      <a
+        href="#horarios"
+        className="flex min-h-12 items-center justify-between border-t border-white/10 px-5 font-semibold text-white/90 transition-colors duration-150 hover:bg-white/5 hover:text-accent"
+      >
+        Ver todos os horários da semana
+        <ChevronRightIcon className="h-[1.125rem] w-[1.125rem]" />
+      </a>
+    </aside>
+  );
+}
 
 async function getUpcomingEvents() {
   const now = new Date();
@@ -76,7 +153,7 @@ export default async function HomePage() {
         hero={
           <section
             id="inicio"
-            className="photo-vignette relative col-start-1 row-start-1 flex min-h-[88vh] w-full items-end overflow-hidden pt-20 sm:rounded-t-3xl"
+            className="photo-vignette photo-vignette-light relative col-start-1 row-start-1 flex min-h-[88vh] w-full items-end overflow-hidden pt-20 sm:rounded-t-3xl"
           >
             <Image
               src={capelaPhoto}
@@ -88,7 +165,7 @@ export default async function HomePage() {
             />
             <div
               aria-hidden="true"
-              className="absolute inset-0 bg-linear-to-t from-primary-dark via-primary-dark/40 to-transparent"
+              className="absolute inset-0 bg-linear-to-t from-[#152F57] via-[#152F57]/40 to-transparent"
             />
             <div className="relative z-10 grid w-full items-end gap-8 px-4 pb-12 sm:px-6 md:grid-cols-[minmax(0,1fr)_22rem] md:pb-16">
               <div className="text-center md:text-left">
@@ -110,30 +187,7 @@ export default async function HomePage() {
                 </a>
               </div>
 
-              {nextMass && (
-                <aside
-                  className="border-l-4 border-accent bg-primary-dark/90 p-6 text-white shadow-lifted backdrop-blur-sm"
-                  aria-label="Próxima Santa Missa"
-                >
-                  <p className="flex items-center gap-2 text-caption font-bold uppercase tracking-widest text-accent">
-                    Próxima Santa Missa
-                  </p>
-                  <p className="mt-3 text-title font-semibold">
-                    {WEEKDAY_LABELS[nextMass.weekday]}, {formatShortDate(nextMass.date)}
-                  </p>
-                  <p className="mt-1 text-title font-bold text-accent">às {formatTime(nextMass.time)}</p>
-                  <div className="mt-3 border-t border-white/15 pt-3 text-caption text-white/80">
-                    <span className="font-semibold text-white">Celebrante:</span> {nextMass.celebrant ?? "A definir"}
-                  </div>
-                  {nextMass.note && <p className="mt-2 text-caption italic text-white/70">{nextMass.note}</p>}
-                  <a
-                    href="#horarios"
-                    className="mt-4 inline-flex text-caption font-semibold text-white/80 underline decoration-accent underline-offset-4 hover:text-accent"
-                  >
-                    Ver todos os horários
-                  </a>
-                </aside>
-              )}
+              {nextMass && <NextMassCard mass={nextMass} />}
             </div>
           </section>
         }
@@ -145,12 +199,12 @@ export default async function HomePage() {
             </div>
           )}
 
-          <WaveDivider className="text-[#152F57] "  />
+          <WaveDivider className="text-[#152F57]" />
 
           <section id="capela" className="scroll-mt-24 px-4 py-10">
             <div className="grid gap-6 md:grid-cols-[1.08fr_0.92fr] md:items-center md:gap-10">
               <div className="overflow-hidden rounded-3xl shadow-card">
-                <div className="photo-vignette hover-grow relative aspect-4/5 w-full md:aspect-5/4">
+                <div className="photo-vignette relative aspect-4/5 w-full md:aspect-5/4">
                   <Image
                     src={interiorCapelaPhoto}
                     alt="Comunidade reunida para a Santa Missa no interior da capela"
@@ -164,9 +218,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <div>
-                <p className="text-caption font-semibold uppercase tracking-widest text-accent-dark">
-                  Nossa comunidade
-                </p>
+                <p className="eyebrow text-accent-dark">Nossa comunidade</p>
                 <h2 className="mt-2 text-title text-primary sm:text-3xl">A Capela começa pelas pessoas</h2>
                 <p className="mt-4 text-lg leading-relaxed">{ABOUT_TEXT}</p>
                 <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6">
@@ -184,7 +236,7 @@ export default async function HomePage() {
           </section>
 
           <section className="px-4 pt-2 pb-4">
-            <p className="text-caption font-semibold uppercase tracking-widest text-accent-dark">Vida comunitária</p>
+            <p className="eyebrow text-accent-dark">Vida comunitária</p>
             <h2 className="mt-1 text-title text-primary sm:text-3xl">Pastorais e grupos</h2>
 
             <Carousel ariaLabel="Pastorais e grupos" opts={{ align: "start", loop: true }} className="mt-6">
@@ -195,6 +247,7 @@ export default async function HomePage() {
                     title="Santa Missa"
                     description="Venha conhecer e participar da Santa Missa com a nossa comunidade."
                     scheduleLabel={massLabel}
+                    Icon={MassIcon}
                     photo={{ src: santaMissaPhoto, alt: "Celebração da Santa Missa na Capela Nossa Senhora Aparecida" }}
                     tone="primary-light"
                   />
@@ -205,6 +258,7 @@ export default async function HomePage() {
                     title="Grupo de Oração Porta do Céu"
                     description="Venha louvar com a gente no Grupo de Oração Porta do Céu."
                     scheduleLabel={prayerGroupLabel}
+                    Icon={PrayerGroupIcon}
                     photo={{ src: grupoDeOracaoPhoto, alt: "Encontro do Grupo de Oração Porta do Céu", position: "top" }}
                     instagram={PRAYER_GROUP_INSTAGRAM}
                     tone="accent"
@@ -216,6 +270,7 @@ export default async function HomePage() {
                     title="Catequese"
                     description="Coloque seu filho na catequese e venha fazer parte dessa caminhada de fé."
                     scheduleLabel={catechismLabel}
+                    Icon={CatechismIcon}
                     photo={{ src: catequistasPhoto, alt: "Equipe de catequistas da Capela Nossa Senhora Aparecida" }}
                     tone="primary-light"
                   />
@@ -226,6 +281,7 @@ export default async function HomePage() {
                     title="Grupo de Jovens Aos Pés da Cruz"
                     description="Venha participar do Grupo de Jovens da nossa comunidade e nos conhecer."
                     scheduleLabel={YOUTH_GROUP_SCHEDULE_LABEL}
+                    Icon={YouthGroupIcon}
                     photo={{ src: grupoDeJovensPhoto, alt: "Grupo de Jovens Aos Pés da Cruz reunido na capela", position: "top" }}
                     instagram={YOUTH_GROUP_INSTAGRAM}
                     tone="accent"
@@ -269,22 +325,24 @@ export default async function HomePage() {
             </div>
           </section>
 
-          <section id="eventos" className="scroll-mt-24 bg-surface-muted px-4 py-6">
+          <section id="eventos" className="scroll-mt-24 px-4 py-8">
             <h2 className="text-title text-primary">Próximos eventos</h2>
             {upcomingEvents.length === 0 ? (
               <p className="mt-2 text-base text-foreground/70">Nenhum evento programado no momento.</p>
             ) : (
-              <Carousel ariaLabel="Próximos eventos" className="mt-4">
-                <CarouselContent>
-                  {upcomingEvents.map((event) => (
-                    <CarouselItem key={event.id} className="basis-[85%] sm:basis-1/2 lg:basis-1/3">
-                      <EventCard event={event} />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-2 sm:-left-4" />
-                <CarouselNext className="right-2 sm:-right-4" />
-              </Carousel>
+              <div className="mt-4 rounded-3xl bg-water-texture p-5 shadow-lifted sm:p-6">
+                <Carousel ariaLabel="Próximos eventos" opts={{ align: "start", loop: true }}>
+                  <CarouselContent>
+                    {upcomingEvents.map((event) => (
+                      <CarouselItem key={event.id} className="basis-[85%] sm:basis-1/2 lg:basis-[42%]">
+                        <EventCard event={event} />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-2 sm:-left-4" />
+                  <CarouselNext className="right-2 sm:-right-4" />
+                </Carousel>
+              </div>
             )}
           </section>
 

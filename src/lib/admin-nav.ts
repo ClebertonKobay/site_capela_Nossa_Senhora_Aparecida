@@ -1,9 +1,31 @@
+import type { ComponentType } from "react";
+
+import {
+  CalendarIcon,
+  CatechismIcon,
+  ClipboardIcon,
+  HeartHandsIcon,
+  MassIcon,
+  TicketIcon,
+  UsersIcon,
+} from "@/components/icons";
 import type { UserRole } from "@/lib/session-token";
 
 export type AdminNavItem = {
   href: string;
   label: string;
   description: string;
+};
+
+export const ADMIN_NAV_ICON: Record<string, ComponentType<{ className?: string }>> = {
+  "/admin/celebrants": MassIcon,
+  "/admin/events": CalendarIcon,
+  "/admin/orders": TicketIcon,
+  "/admin/pastorals/manage": HeartHandsIcon,
+  "/admin/pastorals": HeartHandsIcon,
+  "/admin/catechesis": CatechismIcon,
+  "/admin/my-classes": ClipboardIcon,
+  "/admin/users": UsersIcon,
 };
 
 export const ADMIN_NAV_BY_ROLE: Record<UserRole, AdminNavItem[]> = {

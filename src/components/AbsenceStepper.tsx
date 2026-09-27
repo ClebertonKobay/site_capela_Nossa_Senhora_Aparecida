@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MinusIcon, PlusIcon } from "@/components/icons";
 import { IconButton, useToast } from "@/components/ui";
 import { adjustAbsences } from "@/app/admin/(dashboard)/my-classes/absences-actions";
 
@@ -26,17 +27,20 @@ export function AbsenceStepper({ catechumenId, initialCount }: { catechumenId: n
   }, []);
 
   return (
-    <div className="flex items-center gap-2">
-      <IconButton aria-label="Diminuir faltas" onClick={() => schedule(Math.max(0, count - 1))}>
-        <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none">
-          <path d="M5 12h14" strokeLinecap="round" />
-        </svg>
+    <div className="inline-flex items-center rounded-xl border border-border bg-surface">
+      <IconButton
+        aria-label="Diminuir faltas"
+        onClick={() => schedule(Math.max(0, count - 1))}
+        disabled={count === 0}
+        className="disabled:opacity-40"
+      >
+        <MinusIcon />
       </IconButton>
-      <span className="w-6 text-center text-body font-semibold text-primary">{count}</span>
+      <span aria-live="polite" className="w-8 text-center text-body font-semibold tabular-nums text-primary">
+        {count}
+      </span>
       <IconButton aria-label="Aumentar faltas" onClick={() => schedule(count + 1)}>
-        <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none">
-          <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-        </svg>
+        <PlusIcon />
       </IconButton>
     </div>
   );

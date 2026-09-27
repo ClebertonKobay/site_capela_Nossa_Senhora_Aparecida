@@ -1,0 +1,76 @@
+// Fundo de ondas (desenho de src/assets/layered-waves.svg) atrás de todo o
+// site — evoca o rio Paraíba, onde a imagem de Nossa Senhora Aparecida foi
+// encontrada. Cores em tons do azul-manto, da mais clara (fundo) à mais
+// escura (frente), cada camada deslizando numa velocidade.
+//
+// Cada camada é o desenho original + uma cópia espelhada (x → 1800 - x): as
+// pontas se encontram na mesma altura, então repetir o par e deslizar 1800
+// unidades dá um loop contínuo, sem emenda visível.
+//
+// Escondido abaixo de sm: no celular a moldura azul tem 8px, ninguém veria —
+// e animação contínua gasta bateria de quem está com sinal ruim no pátio.
+
+const LAYERS = [
+  {
+    d: "M0 384L21.5 387.5C43 391 86 398 128.8 395.7C171.7 393.3 214.3 381.7 257.2 384.3C300 387 343 404 385.8 402.7C428.7 401.3 471.3 381.7 514.2 380.5C557 379.3 600 396.7 642.8 403.3C685.7 410 728.3 406 771.2 399C814 392 857 382 878.5 377L900 372L900 601L0 601Z",
+    fill: "var(--color-primary-light)",
+    opacity: 0.3,
+    duration: "95s",
+  },
+  {
+    d: "M0 409L21.5 413.8C43 418.7 86 428.3 128.8 426.7C171.7 425 214.3 412 257.2 416.7C300 421.3 343 443.7 385.8 451C428.7 458.3 471.3 450.7 514.2 439.8C557 429 600 415 642.8 412.2C685.7 409.3 728.3 417.7 771.2 416.8C814 416 857 406 878.5 401L900 396L900 601L0 601Z",
+    fill: "var(--color-primary-light)",
+    opacity: 0.55,
+    duration: "75s",
+  },
+  {
+    d: "M0 486L21.5 483.3C43 480.7 86 475.3 128.8 475C171.7 474.7 214.3 479.3 257.2 478C300 476.7 343 469.3 385.8 463.3C428.7 457.3 471.3 452.7 514.2 458.8C557 465 600 482 642.8 490C685.7 498 728.3 497 771.2 488.2C814 479.3 857 462.7 878.5 454.3L900 446L900 601L0 601Z",
+    fill: "var(--color-primary)",
+    opacity: 0.85,
+    duration: "58s",
+  },
+  {
+    d: "M0 493L21.5 499.5C43 506 86 519 128.8 526.5C171.7 534 214.3 536 257.2 531.3C300 526.7 343 515.3 385.8 507.3C428.7 499.3 471.3 494.7 514.2 493.2C557 491.7 600 493.3 642.8 493.8C685.7 494.3 728.3 493.7 771.2 494C814 494.3 857 495.7 878.5 496.3L900 497L900 601L0 601Z",
+    fill: "var(--color-primary-dark)",
+    opacity: 1,
+    duration: "44s",
+  },
+  {
+    d: "M0 552L21.5 548.7C43 545.3 86 538.7 128.8 541C171.7 543.3 214.3 554.7 257.2 554.8C300 555 343 544 385.8 545C428.7 546 471.3 559 514.2 560.3C557 561.7 600 551.3 642.8 551C685.7 550.7 728.3 560.3 771.2 559.3C814 558.3 857 546.7 878.5 540.8L900 535L900 601L0 601Z",
+    fill: "color-mix(in srgb, var(--color-primary-dark) 70%, black)",
+    opacity: 1,
+    duration: "34s",
+  },
+];
+
+// Desenho, espelho, desenho, espelho — 3600 unidades, das quais 1800 deslizam.
+const COPIES = [
+  undefined,
+  "translate(1800 0) scale(-1 1)",
+  "translate(1800 0)",
+  "translate(3600 0) scale(-1 1)",
+];
+
+export function WavesBackground() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 900 600"
+      preserveAspectRatio="xMidYMax slice"
+      className="pointer-events-none fixed inset-0 -z-10 hidden h-full w-full sm:block"
+    >
+      {LAYERS.map((layer) => (
+        <g
+          key={layer.duration}
+          className="wave-layer"
+          style={{ animationDuration: layer.duration, fill: layer.fill }}
+          opacity={layer.opacity}
+        >
+          {COPIES.map((transform, i) => (
+            <path key={i} d={layer.d} transform={transform} />
+          ))}
+        </g>
+      ))}
+    </svg>
+  );
+}

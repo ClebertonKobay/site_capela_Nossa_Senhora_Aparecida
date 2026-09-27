@@ -4,7 +4,8 @@ import { db } from "@/db";
 import { pastoralMembers, pastorals, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireRole } from "@/lib/auth";
-import { Button, Input, Popover } from "@/components/ui";
+import { Button, Input, PageHeader, Popover } from "@/components/ui";
+import { PlusIcon } from "@/components/icons";
 import { PastoralMembersTable } from "@/components/admin/PastoralMembersTable";
 
 import { createPastoralMember } from "./actions";
@@ -37,8 +38,8 @@ export default async function PastoralsPage({
   if (pastoralId === null) {
     return (
       <div>
-        <h1 className="text-title text-primary">Membros</h1>
-        <p className="mt-4 text-body text-foreground/70">
+        <PageHeader title="Membros" />
+        <p className="text-body text-foreground/70">
           {session.role === "admin" ? (
             <>
               Nenhuma pastoral cadastrada ainda. Crie uma em{" "}
@@ -70,70 +71,71 @@ export default async function PastoralsPage({
   if (!pastoral) {
     return (
       <div>
-        <h1 className="text-title text-primary">Membros</h1>
-        <p className="mt-4 text-body text-foreground/70">Pastoral não encontrada.</p>
+        <PageHeader title="Membros" />
+        <p className="text-body text-foreground/70">Pastoral não encontrada.</p>
       </div>
     );
   }
 
   return (
     <div>
-      {session.role === "admin" && allPastorals.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {allPastorals.map((p) => (
-            <Link
-              key={p.id}
-              href={`/admin/pastorals?pastoralId=${p.id}`}
-              className={`btn ${p.id === pastoralId ? "btn-confirm" : "btn-secondary"}`}
-            >
-              {p.name}
-            </Link>
-          ))}
-        </div>
-      )}
+      <PageHeader
+        title={pastoral.name}
+        description="Membros da pastoral."
+        actions={
+          <Popover
+            title="Novo membro"
+            align="end"
+            trigger={
+              <button type="button" className="btn btn-confirm">
+                <PlusIcon />
+                Novo membro
+              </button>
+            }
+          >
+            <form action={createPastoralMember} className="flex w-full flex-col gap-4">
+              <Input label="Nome" id="name" type="text" name="name" required />
+              <Input
+                label="Telefone"
+                id="phone"
+                type="text"
+                name="phone"
+                placeholder="(42) 99999-8888"
+              />
+              <Input label="Notas" id="notes" type="text" name="notes" />
+              <input type="hidden" name="pastoralId" value={pastoralId} />
+              <Button type="submit">Adicionar membro</Button>
+            </form>
+          </Popover>
+        }
+      />
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-title text-primary">Membros — {pastoral.name}</h1>
-
-        <Popover
-          trigger={
-            <button type="button" className="btn btn-confirm">
-              <svg
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                fill="none"
-                className="h-5 w-5"
-              >
-                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-              </svg>
-              Novo membro
-            </button>
-          }
+      {session.role === "admin" && allPastorals.length > 1 && (
+        <nav
+          aria-label="Trocar de pastoral"
+          className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
         >
-          <form action={createPastoralMember} className="flex w-64 flex-col gap-4">
-            <Input label="Nome" id="name" type="text" name="name" required />
-            <Input
-              label="Telefone"
-              id="phone"
-              type="text"
-              name="phone"
-              placeholder="(42) 99999-8888"
-            />
-            <Input label="Notas" id="notes" type="text" name="notes" />
-            <input type="hidden" name="pastoralId" value={pastoralId} />
-            <Button type="submit">Adicionar membro</Button>
-          </form>
-        </Popover>
-      </div>
-
-      {members.length === 0 ? (
-        <p className="mt-6 text-body text-foreground/70">Nenhum membro cadastrado ainda.</p>
-      ) : (
-        <div className="mt-6">
-          <PastoralMembersTable rows={members} pastoralId={pastoralId} />
-        </div>
+          {allPastorals.map((p) => {
+            const current = p.id === pastoralId;
+            return (
+              <Link
+                key={p.id}
+                href={`/admin/pastorals?pastoralId=${p.id}`}
+                aria-current={current ? "page" : undefined}
+                className={
+                  current
+                    ? "flex min-h-11 shrink-0 items-center rounded-full border border-primary bg-primary px-4 font-semibold whitespace-nowrap text-white"
+                    : "flex min-h-11 shrink-0 items-center rounded-full border border-border bg-surface px-4 font-semibold whitespace-nowrap text-foreground/80 transition-colors duration-150 hover:border-primary-light/60 hover:text-primary"
+                }
+              >
+                {p.name}
+              </Link>
+            );
+          })}
+        </nav>
       )}
+
+      <PastoralMembersTable rows={members} pastoralId={pastoralId} />
     </div>
   );
 }

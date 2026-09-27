@@ -71,6 +71,13 @@
       "when": 1789690785853,
       "tag": "0009_glamorous_mauler",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790477439215,
+      "tag": "0010_class_catechists",
+      "breakpoints": true
     }
   ]
 }

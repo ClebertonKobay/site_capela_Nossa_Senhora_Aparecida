@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { BuyCards } from "@/components/BuyCards";
+import { EventGlyph } from "@/components/icons";
 import { PageShell } from "@/components/PageShell";
 import { db } from "@/db";
 import { events } from "@/db/schema";
@@ -61,11 +62,15 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
 
         <h1 className="mt-2 text-display text-primary">{event.name}</h1>
 
-        {event.image && (
-          <div className="photo-vignette relative mt-4 aspect-4/3 w-full overflow-hidden rounded-3xl shadow-card sm:aspect-16/9">
+        <div className="photo-vignette relative mt-4 aspect-4/3 w-full overflow-hidden rounded-3xl shadow-card sm:aspect-16/9">
+          {event.image ? (
             <Image src={event.image} alt={event.name} fill sizes="100vw" className="object-cover" priority />
-          </div>
-        )}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-water-texture">
+              <EventGlyph className="h-20 w-20 text-white/25" />
+            </div>
+          )}
+        </div>
 
         <section className="mt-4 rounded-3xl bg-accent px-5 py-6 text-primary shadow-card">
           <p className="text-display leading-tight sm:text-4xl">{formatEventDateTime(event.startAt)}</p>

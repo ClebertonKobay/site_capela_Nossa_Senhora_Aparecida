@@ -1,11 +1,11 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { catechismClasses, users } from "@/db/schema";
+import { catechismClasses, classCatechists, users } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 
 const classSchema = z.object({
@@ -45,35 +45,41 @@ export async function updateClass(formData: FormData) {
   revalidatePath("/admin/catechesis");
 }
 
-export async function assignCatechist(formData: FormData) {
+const classCatechistsSchema = z.object({
+  classId: z.coerce.number().int().positive(),
+  // Uma turma pode ter vários catequistas (lista de caixinhas no form).
+  catechistIds: z.array(z.coerce.number().int().positive()).max(20),
+});
+
+export async function setClassCatechists(formData: FormData) {
   await requireRole(["admin", "catechesis_coordinator"]);
 
-  const classId = Number(formData.get("classId"));
-  if (!Number.isInteger(classId)) throw new Error("classId inválido");
+  const { classId, catechistIds } = classCatechistsSchema.parse({
+    classId: formData.get("classId"),
+    catechistIds: formData.getAll("catechistIds"),
+  });
+  const uniqueIds = [...new Set(catechistIds)];
 
-  const catechistIdRaw = (formData.get("catechistId") as string | null) ?? "";
-  let catechistId: number | null = null;
-
-  if (catechistIdRaw !== "") {
-    const parsed = Number(catechistIdRaw);
-    if (!Number.isInteger(parsed)) throw new Error("catechistId inválido");
-    catechistId = parsed;
-
-    const [catechist] = await db
-      .select({ role: users.role })
+  if (uniqueIds.length > 0) {
+    const found = await db
+      .select({ id: users.id })
       .from(users)
-      .where(eq(users.id, catechistId))
-      .limit(1);
-
-    if (!catechist || catechist.role !== "catechist") {
-      throw new Error("Usuário selecionado não é um catequista.");
+      .where(and(inArray(users.id, uniqueIds), eq(users.role, "catechist")));
+    if (found.length !== uniqueIds.length) {
+      throw new Error("Algum usuário selecionado não é catequista.");
     }
   }
 
-  await db
-    .update(catechismClasses)
-    .set({ catechistId })
-    .where(eq(catechismClasses.id, classId));
+  // Apaga e regrava a lista numa transação só (batch do driver Neon HTTP).
+  const remove = db.delete(classCatechists).where(eq(classCatechists.classId, classId));
+  if (uniqueIds.length === 0) {
+    await remove;
+  } else {
+    await db.batch([
+      remove,
+      db.insert(classCatechists).values(uniqueIds.map((catechistId) => ({ classId, catechistId }))),
+    ]);
+  }
 
   revalidatePath("/admin/catechesis");
   revalidatePath("/admin/my-classes");

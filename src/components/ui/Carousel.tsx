@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { cn } from "@/lib/cn";
 import { IconButton } from "./IconButton";
 
@@ -97,8 +98,10 @@ export function Carousel({
 
 export function CarouselContent({ className, children }: { className?: string; children: ReactNode }) {
   const { carouselRef } = useCarousel();
+  // py-3/-my-3: folga vertical dentro do recorte do Embla — sem ela a
+  // sombra, o contorno de foco e a borda de cima dos cartões são cortados.
   return (
-    <div ref={carouselRef} className="overflow-hidden">
+    <div ref={carouselRef} className="-my-3 overflow-hidden py-3">
       <div className={cn("-ml-4 flex", className)}>{children}</div>
     </div>
   );
@@ -124,13 +127,11 @@ export function CarouselPrevious({ className }: { className?: string }) {
       onClick={scrollPrev}
       disabled={!canScrollPrev}
       className={cn(
-        "absolute top-1/2 -translate-y-1/2 rounded-full bg-surface shadow-lifted disabled:pointer-events-none disabled:opacity-40",
+        "absolute top-1/2 -translate-y-1/2 rounded-full bg-surface text-primary shadow-lifted hover:!bg-background disabled:pointer-events-none disabled:opacity-40",
         className,
       )}
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-        <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      <ChevronLeftIcon />
     </IconButton>
   );
 }
@@ -143,13 +144,11 @@ export function CarouselNext({ className }: { className?: string }) {
       onClick={scrollNext}
       disabled={!canScrollNext}
       className={cn(
-        "absolute top-1/2 -translate-y-1/2 rounded-full bg-surface shadow-lifted disabled:pointer-events-none disabled:opacity-40",
+        "absolute top-1/2 -translate-y-1/2 rounded-full bg-surface text-primary shadow-lifted hover:!bg-background disabled:pointer-events-none disabled:opacity-40",
         className,
       )}
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-        <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      <ChevronRightIcon />
     </IconButton>
   );
 }

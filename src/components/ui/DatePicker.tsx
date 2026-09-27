@@ -1,10 +1,9 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { ptBR } from "date-fns/locale";
-import { Popover as RadixPopover } from "radix-ui";
 import { Popover } from "@/components/ui/Popover";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
@@ -27,10 +26,7 @@ const dayPickerClassNames = {
 export function DatePicker({ label, error, value, onChange, includeTime, className }: DatePickerProps) {
   const generatedId = useId();
   const labelId = label ? generatedId : undefined;
-  // Ref no botão de fechar escondido do Radix: permite fechar o popover
-  // programaticamente ao escolher um dia (sem hora), sem precisar controlar
-  // o estado de abertura do Popover compartilhado.
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
   // Hora escolhida em memória enquanto o popover está aberto, usada para
   // combinar com o dia selecionado no calendário quando includeTime é true.
   const [pendingTime, setPendingTime] = useState<string>(() => formatTime(value));
@@ -49,7 +45,7 @@ export function DatePicker({ label, error, value, onChange, includeTime, classNa
   function handleDaySelect(date: Date | undefined) {
     if (!includeTime) {
       onChange(date);
-      closeRef.current?.click();
+      setOpen(false);
       return;
     }
     if (!date) {
@@ -80,6 +76,9 @@ export function DatePicker({ label, error, value, onChange, includeTime, classNa
       )}
       <div className={cn(label && "mt-1")}>
         <Popover
+          title={label || "Selecionar data"}
+          open={open}
+          onOpenChange={setOpen}
           trigger={
             <Button variant="secondary" type="button" className="w-full justify-start" aria-labelledby={labelId}>
               {formattedValue}
@@ -101,7 +100,6 @@ export function DatePicker({ label, error, value, onChange, includeTime, classNa
               onChange={handleTimeChange}
             />
           )}
-          <RadixPopover.Close ref={closeRef} className="hidden" aria-hidden="true" tabIndex={-1} />
         </Popover>
       </div>
       {error && <p className="mt-1 text-caption text-danger">{error}</p>}

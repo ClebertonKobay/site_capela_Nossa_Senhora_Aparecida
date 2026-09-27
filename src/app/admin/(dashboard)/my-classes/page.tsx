@@ -1,11 +1,10 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
-import { catechismClasses, catechumens } from "@/db/schema";
+import { catechismClasses, catechumens, classCatechists } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
-import { formatTime } from "@/lib/format";
-import { WEEKDAY_LABELS } from "@/lib/schedules";
-import { Tabs } from "@/components/ui";
+import { PageHeader, Tabs } from "@/components/ui";
+import { ClassTimeBlock } from "@/components/admin/ClassTimeBlock";
 import { CatechumensTable, type CatechumenRow } from "@/components/admin/CatechumensTable";
 
 export default async function MyClassesPage() {
@@ -14,9 +13,16 @@ export default async function MyClassesPage() {
   const classes =
     session.role === "catechist"
       ? await db
-          .select()
+          .select({
+            id: catechismClasses.id,
+            name: catechismClasses.name,
+            weekday: catechismClasses.weekday,
+            time: catechismClasses.time,
+            active: catechismClasses.active,
+          })
           .from(catechismClasses)
-          .where(eq(catechismClasses.catechistId, session.userId))
+          .innerJoin(classCatechists, eq(classCatechists.classId, catechismClasses.id))
+          .where(eq(classCatechists.catechistId, session.userId))
           .orderBy(catechismClasses.weekday, catechismClasses.time)
       : await db
           .select()
@@ -27,8 +33,8 @@ export default async function MyClassesPage() {
   if (classes.length === 0) {
     return (
       <div>
-        <h1 className="text-title text-primary">Minhas Turmas</h1>
-        <p className="mt-4 text-body text-foreground/70">
+        <PageHeader title="Minhas Turmas" />
+        <p className="text-body text-foreground/70">
           Nenhuma turma atribuída a você ainda — peça para o coordenador de catequese atribuir.
         </p>
       </div>
@@ -65,32 +71,41 @@ export default async function MyClassesPage() {
   }
 
   const tabItems = [
-    ...classes.map((turma) => ({
-      value: `turma-${turma.id}`,
-      label: turma.name,
-      content: (
-        <div className="flex flex-col gap-4">
-          <p className="text-body text-foreground/70">
-            {WEEKDAY_LABELS[turma.weekday]} às {formatTime(turma.time)}
-          </p>
-          <CatechumensTable rows={rowsByClass.get(turma.id) ?? []} mode="absences" />
-        </div>
-      ),
-    })),
+    ...classes.map((turma) => {
+      const rows = rowsByClass.get(turma.id) ?? [];
+      return {
+        value: `turma-${turma.id}`,
+        label: turma.name,
+        count: rows.length,
+        content: (
+          <CatechumensTable
+            rows={rows}
+            mode="absences"
+            header={
+              <div className="flex items-center gap-4">
+                <ClassTimeBlock weekday={turma.weekday} time={turma.time} />
+                <h2 className="min-w-0 text-subtitle text-primary">{turma.name}</h2>
+              </div>
+            }
+          />
+        ),
+      };
+    }),
     {
       value: "todos",
       label: "Todos",
+      count: allRows.length,
       content: <CatechumensTable rows={allRows} mode="absences" searchable showClassColumn />,
     },
   ];
 
   return (
     <div>
-      <h1 className="text-title text-primary">Minhas Turmas</h1>
-
-      <div className="mt-8">
-        <Tabs ariaLabel="Turmas" items={tabItems} />
-      </div>
+      <PageHeader
+        title="Minhas Turmas"
+        description="Toque em + ou − para marcar as faltas. Salva sozinho."
+      />
+      <Tabs ariaLabel="Turmas" items={tabItems} />
     </div>
   );
 }

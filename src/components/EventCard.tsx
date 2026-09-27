@@ -3,6 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Dialog } from "@/components/ui";
+import {
+  CalendarIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  EventGlyph,
+  MapPinIcon,
+} from "@/components/icons";
 import { formatCurrency, formatEventDateTime } from "@/lib/format";
 
 type Event = {
@@ -17,69 +24,154 @@ type Event = {
   featured: boolean;
 };
 
+const TIME_ZONE = "America/Sao_Paulo";
+
+function datePart(date: Date, options: Intl.DateTimeFormatOptions) {
+  return new Intl.DateTimeFormat("pt-BR", { timeZone: TIME_ZONE, ...options })
+    .format(date)
+    .replace(".", "");
+}
+
+function formatHour(date: Date) {
+  const [hour, minute] = datePart(date, { hour: "2-digit", minute: "2-digit" }).split(":");
+  return minute === "00" ? `${hour}h` : `${hour}h${minute}`;
+}
+
+// Folhinha de calendário: dia da semana na faixa dourada, dia grande, mês.
+function DateLeaf({ date, className = "" }: { date: Date; className?: string }) {
+  return (
+    <span
+      className={`flex w-14 flex-col items-center overflow-hidden rounded-xl bg-surface text-center text-primary shadow-card ${className}`}
+    >
+      <span className="w-full bg-accent py-0.5 text-caption font-semibold text-primary-dark">
+        {datePart(date, { weekday: "short" })}
+      </span>
+      <span className="pt-1 text-title leading-none tabular-nums">{datePart(date, { day: "2-digit" })}</span>
+      <span className="pb-1.5 text-caption">{datePart(date, { month: "short" })}</span>
+    </span>
+  );
+}
+
 export function EventCard({ event }: { event: Event }) {
-  const day = new Intl.DateTimeFormat("pt-BR", { day: "2-digit" }).format(event.startAt);
-  const month = new Intl.DateTimeFormat("pt-BR", { month: "short" })
-    .format(event.startAt)
-    .replace(".", "")
-    .toUpperCase();
+  const price = event.sellsCards ? event.cardPrice : null;
+
+  const photo = event.image ? (
+    <Image
+      src={event.image}
+      alt=""
+      fill
+      sizes="(min-width: 1024px) 40vw, 85vw"
+      className="object-cover"
+    />
+  ) : (
+    <div className="absolute inset-0 flex items-center justify-center bg-water-texture">
+      <EventGlyph className="h-14 w-14 text-white/25" />
+    </div>
+  );
 
   return (
     <Dialog
       title={event.name}
-      trigger={
-        event.image ? (
-          <button
-            type="button"
-            className="hover-lift block h-full w-full overflow-hidden rounded-2xl border border-border bg-surface text-left shadow-card"
-          >
-            <div className="photo-vignette relative aspect-4/3 w-full overflow-hidden">
-              <Image src={event.image} alt={event.name} fill sizes="(min-width: 1024px) 33vw, 85vw" className="object-cover" />
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary-dark/10 to-transparent"
-              />
-              <span className="absolute left-3 top-3 flex w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-white py-1.5 text-primary shadow-card">
-                <span className="text-title leading-none">{day}</span>
-                <span className="text-caption uppercase tracking-wide">{month}</span>
-              </span>
-              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                <p className="font-semibold">
-                  {event.featured && <span className="mr-1 text-accent">★</span>}
-                  {event.name}
-                </p>
-                <p className="text-caption text-white/85">{formatEventDateTime(event.startAt)}</p>
-              </div>
+      media={
+        <div className="relative aspect-16/9 w-full">
+          {event.image ? (
+            <Image src={event.image} alt={event.name} fill sizes="448px" className="object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-water-texture">
+              <EventGlyph className="h-16 w-16 text-white/25" />
             </div>
-          </button>
+          )}
+          <DateLeaf date={event.startAt} className="absolute bottom-3 left-4" />
+        </div>
+      }
+      footer={
+        price != null ? (
+          <div className="flex items-center justify-between gap-4">
+            <p className="leading-tight">
+              <span className="block text-caption text-foreground/70">Cartela</span>
+              <span className="text-title text-primary tabular-nums">{formatCurrency(price)}</span>
+            </p>
+            <Link href={`/events/${event.id}`} className="btn btn-confirm">
+              Comprar cartela
+            </Link>
+          </div>
         ) : (
-          <button
-            type="button"
-            className="hover-lift flex w-full items-center gap-4 rounded-2xl border border-border bg-surface px-4 py-3 text-left shadow-card"
-          >
-            <span className="flex w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-primary py-2 text-white">
-              <span className="text-title leading-none">{day}</span>
-              <span className="text-caption uppercase tracking-wide">{month}</span>
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold text-primary">
-                {event.featured && <span className="mr-1 text-accent-dark">★</span>}
-                {event.name}
-              </span>
-              <span className="block text-base">{formatEventDateTime(event.startAt)}</span>
-            </span>
-          </button>
+          <Link href={`/events/${event.id}`} className="btn btn-confirm w-full">
+            Ver página do evento
+          </Link>
         )
       }
+      trigger={
+        // O recorte (máscara) fica no div de dentro: no botão ele cortaria
+        // também o contorno de foco do teclado. A sombra vem de drop-shadow,
+        // que respeita os recortes do ingresso.
+        <button
+          type="button"
+          className="group block h-full w-full rounded-2xl text-left drop-shadow-[0_10px_18px_rgba(10,25,50,0.35)]"
+        >
+          <div className="ticket-cut flex h-full flex-col overflow-hidden rounded-2xl bg-surface">
+            <div className="relative aspect-16/10 w-full overflow-hidden">
+              {photo}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-linear-to-t from-primary-dark/50 via-transparent to-transparent"
+              />
+              <DateLeaf date={event.startAt} className="absolute left-3 top-3" />
+              {event.featured && (
+                <span className="absolute top-3 right-3 rounded-full bg-accent px-2.5 py-1 text-caption font-semibold text-primary-dark shadow-card">
+                  Destaque
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-1 flex-col gap-1.5 px-4 pt-3 pb-4">
+              <p className="line-clamp-2 text-subtitle text-primary">{event.name}</p>
+              <p className="flex items-center gap-2 text-body text-foreground/75">
+                <ClockIcon className="h-4 w-4 shrink-0 text-primary-light" />
+                {formatHour(event.startAt)}
+              </p>
+              {event.location && (
+                <p className="flex items-center gap-2 text-body text-foreground/75">
+                  <MapPinIcon className="h-4 w-4 shrink-0 text-primary-light" />
+                  <span className="truncate">{event.location}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Canhoto do ingresso — altura igual ao --ticket-stub (3.5rem). */}
+            <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-t-2 border-dashed border-border px-4 transition-colors duration-150 group-hover:bg-accent/15">
+              {price != null ? (
+                <span className="font-semibold text-accent-dark">
+                  Cartela {formatCurrency(price)}
+                </span>
+              ) : (
+                <span className="font-semibold text-primary-light">Ver detalhes</span>
+              )}
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary transition-colors duration-150 group-hover:bg-accent group-hover:text-primary-dark">
+                <ChevronRightIcon className="h-4 w-4" />
+              </span>
+            </div>
+          </div>
+        </button>
+      }
     >
-      {event.location && <p className="text-body text-foreground/80">{event.location}</p>}
-      {event.description && <p className="mt-2 text-body whitespace-pre-line">{event.description}</p>}
-      {event.sellsCards && event.cardPrice != null && (
-        <p className="mt-3 text-body font-semibold text-primary">Cartela: {formatCurrency(event.cardPrice)}</p>
+      <ul className="mt-2 flex flex-col gap-2 text-body">
+        <li className="flex items-start gap-3">
+          <CalendarIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary-light" />
+          <span className="first-letter:uppercase">{formatEventDateTime(event.startAt)}</span>
+        </li>
+        {event.location && (
+          <li className="flex items-start gap-3">
+            <MapPinIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary-light" />
+            <span>{event.location}</span>
+          </li>
+        )}
+      </ul>
+      {event.description && (
+        <p className="mt-4 border-t border-border pt-4 text-body whitespace-pre-line text-foreground/85">
+          {event.description}
+        </p>
       )}
-      <Link href={`/events/${event.id}`} className="btn btn-confirm mt-4 w-full">
-        {event.sellsCards ? "Comprar cartela" : "Ver detalhes"}
-      </Link>
     </Dialog>
   );
 }

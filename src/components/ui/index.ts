@@ -12,3 +12,6 @@ export * from "./DataTable";
 export * from "./Toast";
 export * from "./Tabs";
 export * from "./Carousel";
+export * from "./PageHeader";
+export * from "./Panel";
+export * from "./Badge";

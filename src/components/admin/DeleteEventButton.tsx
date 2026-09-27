@@ -19,7 +19,7 @@ export function DeleteEventButton({
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <Button type="submit" variant="cancel">
+      <Button type="submit" variant="ghost-danger">
         Excluir
       </Button>
     </form>

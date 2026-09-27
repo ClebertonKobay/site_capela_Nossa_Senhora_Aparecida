@@ -43,5 +43,12 @@ const columns: ColumnDef<Row>[] = [
 ];
 
 export function OrdersTable({ rows }: { rows: Row[] }) {
-  return <DataTable columns={columns} data={rows} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={rows}
+      emptyMessage="Nenhum pedido ainda. Quando alguém pedir cartela pelo site, aparece aqui."
+      countLabel={(n) => (n === 1 ? "1 pedido" : `${n} pedidos`)}
+    />
+  );
 }

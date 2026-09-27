@@ -4,6 +4,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   serial,
   text,
   time,
@@ -116,11 +117,24 @@ export const pastoralMembers = pgTable("pastoral_members", {
 export const catechismClasses = pgTable("catechism_classes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  catechistId: integer("catechist_id").references(() => users.id),
   weekday: integer("weekday").notNull(), // 0 = domingo ... 6 = sábado
   time: time("time").notNull(),
   active: boolean("active").notNull().default(true),
 });
+
+// Catequistas de cada turma — às vezes são dois, às vezes três.
+export const classCatechists = pgTable(
+  "class_catechists",
+  {
+    classId: integer("class_id")
+      .notNull()
+      .references(() => catechismClasses.id, { onDelete: "cascade" }),
+    catechistId: integer("catechist_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (table) => [primaryKey({ columns: [table.classId, table.catechistId] })],
+);
 
 export const catechumens = pgTable("catechumens", {
   id: serial("id").primaryKey(),

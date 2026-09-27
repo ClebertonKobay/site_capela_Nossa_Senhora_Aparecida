@@ -1,5 +1,6 @@
 "use client";
 
+import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
 
 type Row = {
@@ -36,7 +37,8 @@ export function ExportCsvButton({ rows }: { rows: Row[] }) {
       onClick={handleExport}
       variant="secondary"
     >
-      Exportar CSV
+      <DownloadIcon />
+      Baixar planilha
     </Button>
   );
 }

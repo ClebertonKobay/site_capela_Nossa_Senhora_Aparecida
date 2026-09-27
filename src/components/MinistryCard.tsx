@@ -50,31 +50,34 @@ export function MinistryCard({
         {photo && (
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary-dark/10 to-transparent"
+            className="absolute inset-0 bg-linear-to-t from-primary-dark via-primary-dark/10 to-transparent"
           />
         )}
-        <span className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-primary shadow-card">
-          {Icon && <Icon className="h-5 w-5" />}
-        </span>
-        <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-          <p className="text-subtitle font-bold">{title}</p>
-        </div>
+        <p className="absolute inset-x-0 bottom-0 p-4 text-subtitle font-bold text-white">{title}</p>
       </div>
 
       <div className="flex flex-1 flex-col p-4">
-        <p className="text-body text-foreground/80">{description}</p>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="inline-block rounded-full bg-primary px-3 py-1.5 text-caption font-semibold text-white">
+        <p className="mb-3 text-body text-foreground/80">{description}</p>
+
+        {/* Horário com o ícone da atividade — o ícone ajuda a achar de relance
+            "quando é a missa", "quando é a catequese". */}
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border pt-3">
+          <p className="flex items-center gap-2 font-semibold text-primary">
+            {Icon && (
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-accent">
+                <Icon className="h-[1.125rem] w-[1.125rem]" />
+              </span>
+            )}
             {scheduleLabel}
-          </span>
+          </p>
           {instagram && (
             <a
               href={instagram}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-9 items-center gap-1.5 text-caption font-semibold text-primary-light hover:text-accent-dark"
+              className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-primary-light hover:text-accent-dark"
             >
-              <InstagramIcon className="h-4 w-4" />
+              <InstagramIcon className="h-[1.125rem] w-[1.125rem]" />
               Instagram
             </a>
           )}

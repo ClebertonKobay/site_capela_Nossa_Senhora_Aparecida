@@ -1,10 +1,10 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
-import { catechismClasses, catechumens } from "@/db/schema";
+import { catechumens, classCatechists } from "@/db/schema";
 import { requireRole } from "@/lib/auth";
 
 export async function adjustAbsences(catechumenId: number, count: number) {
@@ -23,11 +23,16 @@ export async function adjustAbsences(catechumenId: number, count: number) {
 
   if (session.role === "catechist") {
     const [ownedClass] = await db
-      .select({ catechistId: catechismClasses.catechistId })
-      .from(catechismClasses)
-      .where(eq(catechismClasses.id, catechumen.classId))
+      .select({ classId: classCatechists.classId })
+      .from(classCatechists)
+      .where(
+        and(
+          eq(classCatechists.classId, catechumen.classId),
+          eq(classCatechists.catechistId, session.userId),
+        ),
+      )
       .limit(1);
-    if (!ownedClass || ownedClass.catechistId !== session.userId) {
+    if (!ownedClass) {
       throw new Response("Não autorizado", { status: 401 });
     }
   }

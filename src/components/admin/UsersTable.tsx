@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { Button, DataTable } from "@/components/ui";
+import { Badge, Button, DataTable } from "@/components/ui";
 
 import { toggleUserActive } from "@/app/admin/(dashboard)/users/actions";
 
@@ -17,7 +17,19 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const columns: ColumnDef<Row>[] = [
-  { accessorKey: "name", header: "Nome", enableSorting: true },
+  {
+    accessorKey: "name",
+    header: "Nome",
+    enableSorting: true,
+    cell: ({ row }) => (
+      <span className="inline-flex flex-wrap items-center gap-2">
+        <span className={row.original.active ? "font-semibold text-primary" : "text-foreground/60"}>
+          {row.original.name}
+        </span>
+        {!row.original.active && <Badge tone="muted">Inativo</Badge>}
+      </span>
+    ),
+  },
   { accessorKey: "username", header: "Usuário" },
   {
     accessorKey: "role",
@@ -28,10 +40,10 @@ const columns: ColumnDef<Row>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <form action={toggleUserActive}>
+      <form action={toggleUserActive} className="flex justify-end">
         <input type="hidden" name="id" value={row.original.id} />
-        <Button type="submit" variant={row.original.active ? "cancel" : "secondary"}>
-          {row.original.active ? "Desativar" : "Ativar"}
+        <Button type="submit" variant={row.original.active ? "ghost-danger" : "ghost"}>
+          {row.original.active ? "Desativar" : "Reativar"}
         </Button>
       </form>
     ),
@@ -39,5 +51,11 @@ const columns: ColumnDef<Row>[] = [
 ];
 
 export function UsersTable({ rows }: { rows: Row[] }) {
-  return <DataTable columns={columns} data={rows} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={rows}
+      countLabel={(n) => (n === 1 ? "1 usuário" : `${n} usuários`)}
+    />
+  );
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { AbsenceStepper } from "@/components/AbsenceStepper";
-import { Button, DataTable, IconButton, Input, Popover } from "@/components/ui";
+import { PencilIcon, SearchIcon } from "@/components/icons";
+import { Badge, Button, DataTable, IconButton, Input, Popover } from "@/components/ui";
 import { formatPhone } from "@/lib/phone";
 import {
   toggleCatechumenActive,
@@ -26,11 +27,14 @@ export function CatechumensTable({
   mode,
   searchable = false,
   showClassColumn = false,
+  header,
 }: {
   rows: CatechumenRow[];
   mode: "manage" | "absences";
   searchable?: boolean;
   showClassColumn?: boolean;
+  /** Topo da folha — a página da catequese passa o cabeçalho da turma. */
+  header?: ReactNode;
 }) {
   const [query, setQuery] = useState("");
 
@@ -47,9 +51,11 @@ export function CatechumensTable({
         header: "Nome",
         enableSorting: true,
         cell: ({ row }) => (
-          <span className={row.original.active ? "text-foreground" : "text-foreground/60"}>
-            {row.original.name}
-            {!row.original.active && <span className="ml-1 text-caption">(inativo)</span>}
+          <span className="inline-flex flex-wrap items-center gap-2">
+            <span className={row.original.active ? "font-semibold text-primary" : "text-foreground/60"}>
+              {row.original.name}
+            </span>
+            {!row.original.active && <Badge tone="muted">Inativo</Badge>}
           </span>
         ),
       },
@@ -88,21 +94,17 @@ export function CatechumensTable({
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-1">
           <Popover
+            title={`Editar ${row.original.name}`}
+            align="end"
             trigger={
-              <IconButton aria-label={`Editar ${row.original.name}`}>
-                <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" fill="none">
-                  <path
-                    d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+              <IconButton aria-label={`Editar ${row.original.name}`} title="Editar">
+                <PencilIcon />
               </IconButton>
             }
           >
-            <form action={updateCatechumen} className="flex w-64 flex-col gap-3">
+            <form action={updateCatechumen} className="flex w-full flex-col gap-3">
               <input type="hidden" name="id" value={row.original.id} />
               <Input label="Nome" type="text" name="name" defaultValue={row.original.name} required />
               <Input
@@ -129,8 +131,8 @@ export function CatechumensTable({
           <form action={toggleCatechumenActive}>
             <input type="hidden" name="id" value={row.original.id} />
             <input type="hidden" name="active" value={row.original.active ? "false" : "true"} />
-            <Button type="submit" variant={row.original.active ? "cancel" : "secondary"}>
-              {row.original.active ? "Desativar" : "Ativar"}
+            <Button type="submit" variant={row.original.active ? "ghost-danger" : "ghost"}>
+              {row.original.active ? "Desativar" : "Reativar"}
             </Button>
           </form>
         </div>
@@ -140,20 +142,34 @@ export function CatechumensTable({
     return base;
   }, [mode, showClassColumn]);
 
-  return (
-    <div>
-      {searchable && (
-        <div className="mb-3 max-w-xs">
-          <Input
-            type="search"
-            label="Buscar por nome"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Digite o nome"
-          />
-        </div>
-      )}
-      <DataTable columns={columns} data={filteredRows} />
+  const search = searchable ? (
+    <div className="relative sm:max-w-sm">
+      <SearchIcon className="pointer-events-none absolute top-1/2 left-3 h-[1.125rem] w-[1.125rem] -translate-y-1/2 text-primary-light" />
+      <input
+        type="search"
+        aria-label="Buscar catequizando por nome"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Buscar pelo nome"
+        className="field pl-10"
+      />
     </div>
+  ) : null;
+
+  return (
+    <DataTable
+      columns={columns}
+      data={filteredRows}
+      header={header || search ? (
+        <div className="flex flex-col gap-4">
+          {header}
+          {search}
+        </div>
+      ) : undefined}
+      emptyMessage={
+        query ? `Nenhum catequizando com "${query.trim()}".` : "Nenhum catequizando nesta turma ainda."
+      }
+      countLabel={(n) => (n === 1 ? "1 catequizando" : `${n} catequizandos`)}
+    />
   );
 }
